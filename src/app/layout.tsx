@@ -3,6 +3,7 @@ import { Hanken_Grotesk, Newsreader } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { siteConfig } from "@/lib/site";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const sans = Hanken_Grotesk({
@@ -18,7 +19,7 @@ const serif = Newsreader({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: getSiteUrl(),
   title: {
     default: `${siteConfig.name}: ${siteConfig.headline}`,
     template: `%s | ${siteConfig.name}`,

@@ -17,6 +17,12 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund
+      # Temporary: publishes the generated lockfile so it can be reviewed and
+      # committed. Removed once package-lock.json is in the repository.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: package-lock.json
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
