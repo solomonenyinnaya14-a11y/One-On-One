@@ -1,30 +1,60 @@
--- One On One migration 2/7: providers, topics, offerings, availability, settings.
+-- One On One migration 02: platform settings, topics, provider profiles.
 --
--- A "provider" is a profile that has applied to be listed. Approval is a
--- moderation decision made by the server (service role), never by the client.
+-- A "provider" is a profile that has applied to sell paid conversations or
+-- services. Approval is a moderation decision made by the server (service role or
+-- an admin function), never by the client. Free messaging does NOT require being
+-- a provider.
 
 set search_path = public, extensions;
 
 -- Platform settings ----------------------------------------------------------
--- A single row of business rules. Not readable by API roles; the server and
--- SECURITY DEFINER functions read it. Values below are conservative defaults
--- that must be reviewed before launch (see docs/database.md).
+-- A single row of business rules. Commercial terms are configuration, not code:
+-- nothing here is hard-coded elsewhere. Money is in kobo (NGN minor units).
+--
+-- The values below are conservative placeholders, NOT approved commercial terms.
+-- Commission and subscription pricing are product decisions still to be made:
+--   * platform_fee_bps / service_fee_bps default to 0 (no commission).
+--   * subscription_price_minor / subscription_period_days default to NULL, which
+--     means "subscriptions are not on sale yet": the server refuses to start one.
+-- Not readable by API roles other than admins; the server and SECURITY DEFINER
+-- functions read it.
 
 create table public.platform_settings (
   id boolean primary key default true,
+  -- Commission on paid conversations and on paid services, in basis points.
   platform_fee_bps integer not null default 0,
+  service_fee_bps integer not null default 0,
+  -- Provider subscription (unlocks additional paid conversation offerings).
+  subscription_price_minor bigint,
+  subscription_period_days integer,
+  -- Paid conversations.
   min_booking_lead_minutes integer not null default 30,
   payment_window_minutes integer not null default 15,
   free_cancellation_hours integer not null default 24,
-  earnings_hold_hours integer not null default 0,
+  -- Hours after a completed session / accepted delivery before earnings become
+  -- available to withdraw (the window in which a customer can raise a dispute).
+  earnings_hold_hours integer not null default 24,
+  -- Days after delivery before an unanswered service delivery completes itself.
+  service_auto_release_days integer not null default 3,
+  -- Free chats: messages a stranger may send before the recipient responds.
+  request_message_limit integer not null default 3,
+  -- Smallest withdrawal, in kobo (default NGN 1,000).
+  min_payout_minor bigint not null default 100000,
   currency text not null default 'NGN',
   updated_at timestamptz not null default now(),
   constraint platform_settings_singleton check (id),
   constraint platform_settings_fee_range check (platform_fee_bps between 0 and 5000),
+  constraint platform_settings_service_fee_range check (service_fee_bps between 0 and 5000),
+  constraint platform_settings_sub_price check (subscription_price_minor is null or subscription_price_minor > 0),
+  constraint platform_settings_sub_period check (subscription_period_days is null or subscription_period_days between 1 and 366),
+  constraint platform_settings_sub_pair check ((subscription_price_minor is null) = (subscription_period_days is null)),
   constraint platform_settings_lead_range check (min_booking_lead_minutes >= 0),
   constraint platform_settings_window_range check (payment_window_minutes between 5 and 1440),
   constraint platform_settings_cancel_range check (free_cancellation_hours >= 0),
   constraint platform_settings_hold_range check (earnings_hold_hours >= 0),
+  constraint platform_settings_release_range check (service_auto_release_days between 1 and 30),
+  constraint platform_settings_request_range check (request_message_limit between 1 and 20),
+  constraint platform_settings_min_payout_range check (min_payout_minor >= 0),
   constraint platform_settings_currency check (currency = 'NGN')
 );
 
@@ -43,8 +73,9 @@ create policy platform_settings_select_admin on public.platform_settings
   using ((select private.is_admin()));
 
 -- Topics ---------------------------------------------------------------------
--- Curated list of conversation topics. Created and edited by admins through the
--- server; everyone can read the active ones.
+-- Curated list of conversation and service categories. Created and edited by
+-- admins through the server; everyone can read the active ones. The starter list
+-- below is editable by admins and is not a product decision.
 
 create table public.topics (
   id uuid primary key default gen_random_uuid(),
@@ -69,6 +100,16 @@ grant select on public.topics to anon, authenticated;
 create policy topics_select_active on public.topics
   for select to anon, authenticated
   using (is_active);
+
+insert into public.topics (slug, name) values
+  ('career', 'Career'),
+  ('business', 'Business'),
+  ('technology', 'Technology'),
+  ('education', 'Education'),
+  ('creative', 'Creative'),
+  ('relationships', 'Relationships'),
+  ('personal-growth', 'Personal growth'),
+  ('other', 'Other');
 
 -- Provider profiles ----------------------------------------------------------
 
@@ -112,8 +153,8 @@ create trigger provider_profiles_set_updated_at
 -- Who may move a provider profile between statuses.
 --   * Providers (API role "authenticated"): draft/rejected -> pending_review
 --     (submit) and pending_review -> draft (withdraw). Nothing else.
---   * The server (service role / owner): any move between valid statuses, which
---     is how approval, rejection and suspension happen.
+--   * The server (service role / owner / admin functions): any move between
+--     valid statuses, which is how approval, rejection and suspension happen.
 create function private.guard_provider_status()
 returns trigger
 language plpgsql
@@ -146,8 +187,12 @@ create trigger provider_profiles_guard_status
   before update on public.provider_profiles
   for each row execute function private.guard_provider_status();
 
--- True when a user is an approved provider whose account is active. Used by the
--- public-read policies so that suspended accounts disappear from discovery.
+-- True when p_user is an approved provider that the CURRENT viewer may see and
+-- book: the account is active, finished onboarding, has not hidden itself from
+-- discovery, and neither side has blocked the other. Used by every public-read
+-- policy and by booking and order creation, so a hidden, suspended or blocked
+-- provider disappears everywhere at once. Signed-out visitors have no identity, so
+-- the block check simply does not apply to them.
 create function private.is_public_provider(p_user uuid)
 returns boolean
 language sql
@@ -162,12 +207,23 @@ as $$
     where pp.user_id = p_user
       and pp.status = 'approved'
       and p.status = 'active'
+      and p.is_discoverable
+      and p.username is not null
+      and p.onboarding_completed_at is not null
+      and not private.is_blocked_between((select auth.uid()), p_user)
   );
 $$;
 
 alter table public.provider_profiles enable row level security;
 revoke all on public.provider_profiles from anon, authenticated;
-grant select on public.provider_profiles to anon, authenticated;
+-- Column-level read access, so internal moderation fields never leave the
+-- database: reviewed_by (which admin decided) is readable by nobody through the
+-- API. Clients must name their columns; "select *" is refused by design.
+grant select (user_id, headline, about, languages, status, rating_count, rating_sum, created_at)
+  on public.provider_profiles to anon;
+grant select (user_id, headline, about, languages, status, rating_count, rating_sum, created_at,
+              submitted_at, reviewed_at, rejection_reason, updated_at)
+  on public.provider_profiles to authenticated;
 -- Insert/update are limited to descriptive columns. Status (guarded by the
 -- trigger above), review fields and rating counters are not user-writable.
 grant insert (user_id, headline, about, languages) on public.provider_profiles to authenticated;
@@ -185,16 +241,24 @@ create policy provider_profiles_select_admin on public.provider_profiles
   for select to authenticated
   using ((select private.is_admin()));
 
+-- Only active, onboarded accounts can apply to become a provider.
 create policy provider_profiles_insert_own on public.provider_profiles
   for insert to authenticated
-  with check (user_id = (select auth.uid()));
+  with check (
+    user_id = (select auth.uid())
+    and exists (
+      select 1 from public.profiles p
+      where p.id = user_id and p.status = 'active' and p.onboarding_completed_at is not null
+    )
+  );
 
 create policy provider_profiles_update_own on public.provider_profiles
   for update to authenticated
   using (user_id = (select auth.uid()) and status <> 'suspended')
   with check (user_id = (select auth.uid()));
 
--- Approved providers' profiles are public by design (that is what discovery is).
+-- Approved providers' profiles are public by design (that is what discovery is),
+-- even for visitors who are not signed in.
 create policy profiles_select_public_providers on public.profiles
   for select to anon, authenticated
   using (private.is_public_provider(id));
@@ -245,148 +309,5 @@ create policy provider_topics_insert_own on public.provider_topics
   with check (provider_id = (select auth.uid()));
 
 create policy provider_topics_delete_own on public.provider_topics
-  for delete to authenticated
-  using (provider_id = (select auth.uid()));
-
--- Offerings ------------------------------------------------------------------
--- What a provider sells: a text or voice conversation of a fixed length at a
--- fixed price. Prices are integers in kobo (NGN minor units): never floats.
--- A booking copies these values at booking time, so later edits do not change
--- existing bookings.
-
-create table public.offerings (
-  id uuid primary key default gen_random_uuid(),
-  provider_id uuid not null references public.provider_profiles (user_id) on delete cascade,
-  kind text not null,
-  title text not null,
-  description text,
-  duration_minutes integer not null,
-  price_minor bigint not null,
-  currency text not null default 'NGN',
-  is_active boolean not null default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint offerings_kind_valid check (kind in ('text', 'voice')),
-  constraint offerings_title_length check (char_length(btrim(title)) between 1 and 80),
-  constraint offerings_description_length check (description is null or char_length(description) <= 500),
-  constraint offerings_duration_valid check (duration_minutes between 10 and 120 and duration_minutes % 5 = 0),
-  -- Sanity bounds only (NGN 1 to NGN 1,000,000). Real limits are a product decision.
-  constraint offerings_price_valid check (price_minor between 100 and 100000000),
-  constraint offerings_currency_valid check (currency = 'NGN')
-);
-
-create index offerings_provider_id_idx on public.offerings (provider_id);
-
-create trigger offerings_set_updated_at
-  before update on public.offerings
-  for each row execute function private.set_updated_at();
-
-alter table public.offerings enable row level security;
-revoke all on public.offerings from anon, authenticated;
-grant select on public.offerings to anon, authenticated;
-grant insert (provider_id, kind, title, description, duration_minutes, price_minor, is_active)
-  on public.offerings to authenticated;
-grant update (title, description, duration_minutes, price_minor, is_active)
-  on public.offerings to authenticated;
-grant delete on public.offerings to authenticated;
-
-create policy offerings_select_public on public.offerings
-  for select to anon, authenticated
-  using (is_active and private.is_public_provider(provider_id));
-
-create policy offerings_select_own on public.offerings
-  for select to authenticated
-  using (provider_id = (select auth.uid()));
-
-create policy offerings_insert_own on public.offerings
-  for insert to authenticated
-  with check (provider_id = (select auth.uid()));
-
-create policy offerings_update_own on public.offerings
-  for update to authenticated
-  using (provider_id = (select auth.uid()))
-  with check (provider_id = (select auth.uid()));
-
-create policy offerings_delete_own on public.offerings
-  for delete to authenticated
-  using (provider_id = (select auth.uid()));
-
--- Availability ---------------------------------------------------------------
--- Weekly recurring windows in the provider's own timezone (profiles.timezone),
--- plus one-off blocks for time off. weekday follows Postgres: 0 = Sunday.
-
-create table public.availability_rules (
-  id uuid primary key default gen_random_uuid(),
-  provider_id uuid not null references public.provider_profiles (user_id) on delete cascade,
-  weekday smallint not null,
-  start_time time not null,
-  end_time time not null,
-  created_at timestamptz not null default now(),
-  constraint availability_rules_weekday_valid check (weekday between 0 and 6),
-  constraint availability_rules_time_order check (end_time > start_time),
-  constraint availability_rules_unique unique (provider_id, weekday, start_time, end_time)
-);
-
-create index availability_rules_provider_idx on public.availability_rules (provider_id, weekday);
-
-alter table public.availability_rules enable row level security;
-revoke all on public.availability_rules from anon, authenticated;
-grant select on public.availability_rules to anon, authenticated;
-grant insert, update, delete on public.availability_rules to authenticated;
-
-create policy availability_rules_select_public on public.availability_rules
-  for select to anon, authenticated
-  using (private.is_public_provider(provider_id));
-
-create policy availability_rules_select_own on public.availability_rules
-  for select to authenticated
-  using (provider_id = (select auth.uid()));
-
-create policy availability_rules_insert_own on public.availability_rules
-  for insert to authenticated
-  with check (provider_id = (select auth.uid()));
-
-create policy availability_rules_update_own on public.availability_rules
-  for update to authenticated
-  using (provider_id = (select auth.uid()))
-  with check (provider_id = (select auth.uid()));
-
-create policy availability_rules_delete_own on public.availability_rules
-  for delete to authenticated
-  using (provider_id = (select auth.uid()));
-
--- Time off. Private to the provider: customers only ever see the resulting open
--- slots (get_open_slots), never the reason or the block itself.
-create table public.availability_blocks (
-  id uuid primary key default gen_random_uuid(),
-  provider_id uuid not null references public.provider_profiles (user_id) on delete cascade,
-  starts_at timestamptz not null,
-  ends_at timestamptz not null,
-  reason text,
-  created_at timestamptz not null default now(),
-  constraint availability_blocks_time_order check (ends_at > starts_at),
-  constraint availability_blocks_reason_length check (reason is null or char_length(reason) <= 200)
-);
-
-create index availability_blocks_provider_idx on public.availability_blocks (provider_id, starts_at);
-
-alter table public.availability_blocks enable row level security;
-revoke all on public.availability_blocks from anon, authenticated;
-grant select, insert, update, delete on public.availability_blocks to authenticated;
-
-create policy availability_blocks_select_own on public.availability_blocks
-  for select to authenticated
-  using (provider_id = (select auth.uid()));
-
-create policy availability_blocks_insert_own on public.availability_blocks
-  for insert to authenticated
-  with check (provider_id = (select auth.uid()));
-
-create policy availability_blocks_update_own on public.availability_blocks
-  for update to authenticated
-  using (provider_id = (select auth.uid()))
-  with check (provider_id = (select auth.uid()));
-
-create policy availability_blocks_delete_own on public.availability_blocks
   for delete to authenticated
   using (provider_id = (select auth.uid()));
