@@ -5,6 +5,9 @@ import { getSession } from "@/lib/session";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import { signOut } from "../(auth)/actions";
 
+// Everything here depends on who is signed in, so it is never prerendered.
+export const dynamic = "force-dynamic";
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   if (!getSupabaseEnv()) return <NotConfigured />;
 

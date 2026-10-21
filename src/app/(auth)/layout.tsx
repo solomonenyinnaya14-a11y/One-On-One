@@ -2,6 +2,9 @@ import Link from "next/link";
 import { BrandMark } from "@/components/brand-mark";
 import { siteConfig } from "@/lib/site";
 
+// Everything here depends on who is signed in, so it is never prerendered.
+export const dynamic = "force-dynamic";
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <main id="main" className="mx-auto flex min-h-dvh max-w-md flex-col px-5 py-8">
