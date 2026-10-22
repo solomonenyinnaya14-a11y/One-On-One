@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { EmptyState, ErrorState, PageTitle } from "@/components/app/states";
 import { Avatar } from "@/components/ui/avatar";
 import { getSession } from "@/lib/session";
@@ -8,6 +9,7 @@ export const metadata: Metadata = { title: "Inbox" };
 type InboxRow = {
   conversation_id: string;
   status: string;
+  i_started: boolean;
   other_username: string | null;
   other_display_name: string;
   other_avatar_path: string | null;
@@ -30,17 +32,25 @@ export default async function InboxPage() {
       ) : (
         <ul className="space-y-3">
           {rows.map((r) => (
-            <li key={r.conversation_id} className="flex items-center gap-4 rounded-2xl border border-grey-200 p-4">
-              <Avatar name={r.other_display_name} path={r.other_avatar_path} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{r.other_display_name}</p>
-                <p className="truncate text-sm text-grey-600">{r.last_message_preview}</p>
-              </div>
-              {Number(r.unread_count) > 0 ? (
-                <span className="rounded-full bg-navy-900 px-2 text-xs font-semibold leading-6 text-white">
-                  {r.unread_count}
-                </span>
-              ) : null}
+            <li key={r.conversation_id}>
+              <Link
+                href={`/inbox/${r.conversation_id}`}
+                className="flex items-center gap-4 rounded-2xl border border-grey-200 p-4 hover:bg-grey-50"
+              >
+                <Avatar name={r.other_display_name} path={r.other_avatar_path} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{r.other_display_name}</p>
+                  <p className="truncate text-sm text-grey-600">
+                    {r.status === "request" ? (r.i_started ? "Request sent · " : "Request · ") : ""}
+                    {r.last_message_preview}
+                  </p>
+                </div>
+                {Number(r.unread_count) > 0 ? (
+                  <span aria-label={`${r.unread_count} unread`} className="rounded-full bg-navy-900 px-2 text-xs font-semibold leading-6 text-white">
+                    {r.unread_count}
+                  </span>
+                ) : null}
+              </Link>
             </li>
           ))}
         </ul>

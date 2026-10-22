@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { FollowButton } from "@/components/app/follow-button";
+import { MessageButton } from "@/components/app/message-button";
 import { Avatar } from "@/components/ui/avatar";
-import { formatCount, formatNaira } from "@/lib/format";
-import { getOfferings, getPersonByUsername, getStats } from "@/lib/queries";
+import { formatNaira } from "@/lib/format";
+import { getOfferings, getPersonByUsername } from "@/lib/queries";
 import { getSession } from "@/lib/session";
 
 type Params = { params: Promise<{ username: string }> };
@@ -19,10 +19,7 @@ export default async function PublicProfilePage({ params }: Params) {
   // Hidden, blocked, suspended and unknown accounts all look the same.
   if (!person) notFound();
 
-  const [stats, offerings] = await Promise.all([
-    getStats(session.supabase, person.id),
-    person.provider ? getOfferings(session.supabase, person.id) : Promise.resolve([]),
-  ]);
+  const offerings = person.provider ? await getOfferings(session.supabase, person.id) : [];
   const rating =
     person.provider && person.provider.rating_count > 0
       ? (person.provider.rating_sum / person.provider.rating_count).toFixed(1)
@@ -43,19 +40,9 @@ export default async function PublicProfilePage({ params }: Params) {
         </div>
       </header>
 
-      <dl className="mt-6 flex gap-8">
-        <div>
-          <dt className="text-sm text-grey-600">Followers</dt>
-          <dd className="text-xl font-semibold">{formatCount(stats.follower_count)}</dd>
-        </div>
-        <div>
-          <dt className="text-sm text-grey-600">Following</dt>
-          <dd className="text-xl font-semibold">{formatCount(stats.following_count)}</dd>
-        </div>
-      </dl>
 
       <div className="mt-6">
-        <FollowButton targetId={person.id} username={person.username!} following={stats.viewer_follows} />
+        <MessageButton targetId={person.id} />
       </div>
 
       {person.provider?.headline ? (

@@ -1,6 +1,6 @@
 import type { createClient } from "@/lib/supabase/server";
 import { sanitizeSearchTerm } from "@/lib/search";
-import type { OfferingRow, ProfileRow, ProfileStats, ProviderCard } from "@/lib/types";
+import type { OfferingRow, ProfileRow, ProviderCard } from "@/lib/types";
 
 type Client = NonNullable<Awaited<ReturnType<typeof createClient>>>;
 
@@ -64,16 +64,6 @@ export async function getPersonByUsername(
     .eq("username", username.toLowerCase())
     .maybeSingle();
   return data ? toCard(data as unknown as RawPerson) : null;
-}
-
-export async function getStats(supabase: Client, userId: string): Promise<ProfileStats> {
-  const { data } = await supabase.rpc("profile_stats", { p_user: userId });
-  const row = Array.isArray(data) ? data[0] : data;
-  return {
-    follower_count: Number(row?.follower_count ?? 0),
-    following_count: Number(row?.following_count ?? 0),
-    viewer_follows: Boolean(row?.viewer_follows),
-  };
 }
 
 export async function getOfferings(supabase: Client, providerId: string): Promise<OfferingRow[]> {

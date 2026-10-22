@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
-import { formatCount } from "@/lib/format";
-import { getStats } from "@/lib/queries";
 import { getSession } from "@/lib/session";
 import { signOut } from "../../(auth)/actions";
 
@@ -11,7 +9,6 @@ export const metadata: Metadata = { title: "Profile" };
 export default async function MePage() {
   const session = (await getSession())!;
   const { profile } = session;
-  const stats = await getStats(session.supabase, session.userId);
 
   return (
     <>
@@ -24,16 +21,6 @@ export default async function MePage() {
         </div>
       </header>
 
-      <dl className="mt-6 flex gap-8">
-        <div>
-          <dt className="text-sm text-grey-600">Followers</dt>
-          <dd className="text-xl font-semibold">{formatCount(stats.follower_count)}</dd>
-        </div>
-        <div>
-          <dt className="text-sm text-grey-600">Following</dt>
-          <dd className="text-xl font-semibold">{formatCount(stats.following_count)}</dd>
-        </div>
-      </dl>
 
       {profile.bio ? <p className="mt-6 whitespace-pre-line">{profile.bio}</p> : null}
       {profile.expertise ? (

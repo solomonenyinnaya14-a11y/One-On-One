@@ -22,12 +22,6 @@ export type ProviderCard = {
   rating_sum: number;
 };
 
-export type ProfileStats = {
-  follower_count: number;
-  following_count: number;
-  viewer_follows: boolean;
-};
-
 export type OfferingRow = {
   id: string;
   kind: "text" | "voice";
