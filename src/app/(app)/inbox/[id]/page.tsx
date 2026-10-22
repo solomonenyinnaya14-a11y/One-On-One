@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Chat, type ChatMessage } from "@/components/app/chat";
 import { Avatar } from "@/components/ui/avatar";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Conversation" };
 
@@ -12,7 +12,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export default async function ConversationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID.test(id)) notFound();
-  const session = (await getSession())!;
+  const session = await requireSession();
 
   // Row-level security means this only returns conversations the person is in.
   const { data: convo } = await session.supabase

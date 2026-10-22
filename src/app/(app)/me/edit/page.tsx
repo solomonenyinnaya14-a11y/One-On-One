@@ -4,12 +4,12 @@ import { updateProfile } from "@/app/(app)/actions";
 import { AvatarUploader } from "@/components/app/avatar-uploader";
 import { ProfileForm } from "@/components/app/profile-form";
 import { PageTitle } from "@/components/app/states";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Edit profile" };
 
 export default async function EditProfilePage() {
-  const session = (await getSession())!;
+  const session = await requireSession();
   const { profile } = session;
   return (
     <>

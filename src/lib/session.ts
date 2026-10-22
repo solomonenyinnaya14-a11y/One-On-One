@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { ProfileRow } from "@/lib/types";
@@ -32,3 +33,10 @@ export const getSession = cache(async (): Promise<SessionContext | null> => {
     profile: profile as SessionContext["profile"],
   };
 });
+
+/** For signed-in pages: a missing session (expired, or profile unreadable) goes to sign-in instead of crashing. */
+export async function requireSession(): Promise<SessionContext> {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  return session;
+}

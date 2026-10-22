@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 import { signOut } from "../../(auth)/actions";
 
 export const metadata: Metadata = { title: "Profile" };
 
 export default async function MePage() {
-  const session = (await getSession())!;
+  const session = await requireSession();
   const { profile } = session;
 
   return (

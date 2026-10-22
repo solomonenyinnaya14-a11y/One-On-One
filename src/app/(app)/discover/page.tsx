@@ -4,7 +4,7 @@ import { PersonListItem } from "@/components/app/person-card";
 import { EmptyState, ErrorState, PageTitle } from "@/components/app/states";
 import { listPeople, PAGE_SIZE } from "@/lib/queries";
 import { sanitizeSearchTerm } from "@/lib/search";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Discover" };
 
@@ -13,7 +13,7 @@ export default async function DiscoverPage({
 }: {
   searchParams: Promise<{ q?: string; providers?: string; page?: string }>;
 }) {
-  const session = (await getSession())!;
+  const session = await requireSession();
   const sp = await searchParams;
   const q = sanitizeSearchTerm(sp.q);
   const providersOnly = sp.providers === "1";

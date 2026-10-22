@@ -3,12 +3,12 @@ import Link from "next/link";
 import { PersonListItem } from "@/components/app/person-card";
 import { EmptyState, ErrorState, PageTitle } from "@/components/app/states";
 import { listPeople } from "@/lib/queries";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Home" };
 
 export default async function HomePage() {
-  const session = (await getSession())!;
+  const session = await requireSession();
   const firstName = session.profile.display_name.split(" ")[0];
 
   const [providers, people] = await Promise.all([

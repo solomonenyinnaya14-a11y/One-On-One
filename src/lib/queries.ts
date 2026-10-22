@@ -54,7 +54,10 @@ export async function listPeople(
   }
 
   const { data, error } = await query;
-  if (error) return { people: [], error: true };
+  if (error) {
+    console.error("listPeople failed", { code: error.code, message: error.message });
+    return { people: [], error: true };
+  }
   return { people: ((data ?? []) as unknown as RawPerson[]).map(toCard), error: false };
 }
 

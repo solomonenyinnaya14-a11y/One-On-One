@@ -4,7 +4,7 @@ import { MessageButton } from "@/components/app/message-button";
 import { Avatar } from "@/components/ui/avatar";
 import { formatNaira } from "@/lib/format";
 import { getOfferings, getPersonByUsername } from "@/lib/queries";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 
 type Params = { params: Promise<{ username: string }> };
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Profile" };
 
 export default async function PublicProfilePage({ params }: Params) {
   const { username } = await params;
-  const session = (await getSession())!;
+  const session = await requireSession();
   if (username.toLowerCase() === session.profile.username) redirect("/me");
 
   const person = await getPersonByUsername(session.supabase, username);

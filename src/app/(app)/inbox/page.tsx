@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState, ErrorState, PageTitle } from "@/components/app/states";
 import { Avatar } from "@/components/ui/avatar";
-import { getSession } from "@/lib/session";
+import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Inbox" };
 
@@ -18,7 +18,7 @@ type InboxRow = {
 };
 
 export default async function InboxPage() {
-  const session = (await getSession())!;
+  const session = await requireSession();
   const { data, error } = await session.supabase.rpc("my_inbox", { p_limit: 50, p_offset: 0 });
   const rows = (data ?? []) as InboxRow[];
 
