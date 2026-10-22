@@ -1,41 +1,41 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Avatar } from "@/components/ui/avatar";
+import { ProfileView } from "@/components/app/profile-view";
+import { getMyOfferings, getMyProvider } from "@/lib/provider-queries";
+import { offeringStatus } from "@/lib/provider-validation";
 import { requireSession } from "@/lib/session";
 import { signOut } from "../../(auth)/actions";
 
 export const metadata: Metadata = { title: "Profile" };
 
+const STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
+  pending_review: "Under review",
+  approved: "Approved",
+  rejected: "Needs changes",
+  suspended: "Suspended",
+};
+
 export default async function MePage() {
   const session = await requireSession();
   const { profile } = session;
-  const { data: isAdmin } = await session.supabase.rpc("am_i_admin");
+  // Same sources as the Create tab: your own provider record and ALL your offerings.
+  const [{ data: isAdmin }, provider, mine] = await Promise.all([
+    session.supabase.rpc("am_i_admin"),
+    getMyProvider(session.supabase, session.userId),
+    getMyOfferings(session.supabase, session.userId),
+  ]);
+  const approved = provider?.status === "approved";
 
   return (
     <>
-      <header className="flex items-start gap-5">
-        <Avatar name={profile.display_name} path={profile.avatar_path} size="lg" />
-        <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-3xl font-medium leading-tight">{profile.display_name}</h1>
-          <p className="text-grey-600">@{profile.username}</p>
-          {session.email ? <p className="mt-1 truncate text-sm text-grey-600">{session.email}</p> : null}
-        </div>
-      </header>
-
-
-      {profile.bio ? <p className="mt-6 whitespace-pre-line">{profile.bio}</p> : null}
-      {profile.expertise ? (
-        <p className="mt-3 text-sm text-grey-600">
-          <span className="font-semibold text-ink">Knows about:</span> {profile.expertise}
-        </p>
-      ) : null}
-      {profile.interests.length > 0 ? (
-        <ul className="mt-3 flex flex-wrap gap-2" aria-label="Interests">
-          {profile.interests.map((i) => (
-            <li key={i} className="rounded-full bg-grey-100 px-3 py-1 text-sm">{i}</li>
-          ))}
-        </ul>
-      ) : null}
+      <ProfileView
+        isSelf
+        email={session.email}
+        person={profile}
+        provider={provider ? { ...provider, statusLabel: STATUS_LABEL[provider.status] } : null}
+        offerings={mine.offerings.map((o) => ({ ...o, badge: offeringStatus(o, approved).label }))}
+      />
 
       <p className="mt-6 text-sm text-grey-600">
         {profile.is_discoverable ? "You appear in Discover and search." : "You are hidden from Discover and search."}

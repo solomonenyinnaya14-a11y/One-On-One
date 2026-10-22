@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { MessageButton } from "@/components/app/message-button";
-import { Avatar } from "@/components/ui/avatar";
-import { formatNaira } from "@/lib/format";
+import { ProfileView } from "@/components/app/profile-view";
 import { getOfferings, getPersonByUsername } from "@/lib/queries";
 import { requireSession } from "@/lib/session";
 
@@ -20,73 +19,13 @@ export default async function PublicProfilePage({ params }: Params) {
   if (!person) notFound();
 
   const offerings = person.provider ? await getOfferings(session.supabase, person.id) : [];
-  const rating =
-    person.provider && person.provider.rating_count > 0
-      ? (person.provider.rating_sum / person.provider.rating_count).toFixed(1)
-      : null;
 
   return (
-    <article>
-      <header className="flex items-start gap-5">
-        <Avatar name={person.display_name} path={person.avatar_path} size="lg" />
-        <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-3xl font-medium leading-tight">{person.display_name}</h1>
-          <p className="text-grey-600">@{person.username}</p>
-          {person.provider ? (
-            <p className="mt-1 text-sm font-semibold text-navy-900">
-              Provider{rating ? ` · ${rating} (${person.provider.rating_count} reviews)` : ""}
-            </p>
-          ) : null}
-        </div>
-      </header>
-
-
-      <div className="mt-6">
-        <MessageButton targetId={person.id} />
-      </div>
-
-      {person.provider?.headline ? (
-        <p className="mt-8 font-serif text-xl">{person.provider.headline}</p>
-      ) : null}
-      {person.provider?.about || person.bio ? (
-        <p className="mt-3 whitespace-pre-line text-ink">{person.provider?.about ?? person.bio}</p>
-      ) : null}
-      {person.expertise ? (
-        <p className="mt-4 text-sm text-grey-600">
-          <span className="font-semibold text-ink">Knows about:</span> {person.expertise}
-        </p>
-      ) : null}
-      {person.interests.length > 0 ? (
-        <ul className="mt-4 flex flex-wrap gap-2" aria-label="Interests">
-          {person.interests.map((i) => (
-            <li key={i} className="rounded-full bg-grey-100 px-3 py-1 text-sm">{i}</li>
-          ))}
-        </ul>
-      ) : null}
-
-      {person.provider ? (
-        <section aria-labelledby="offerings-h" className="mt-10">
-          <h2 id="offerings-h" className="text-lg font-semibold">Paid conversations</h2>
-          {offerings.length === 0 ? (
-            <p className="mt-2 text-grey-600">This provider hasn&apos;t listed a conversation yet.</p>
-          ) : (
-            <ul className="mt-3 space-y-3">
-              {offerings.map((o) => (
-                <li key={o.id} className="card p-4">
-                  <p className="font-semibold">{o.title}</p>
-                  <p className="text-sm text-grey-600">
-                    {o.kind === "voice" ? "Voice" : "Text"} · {o.duration_minutes} min · {formatNaira(o.price_minor)}
-                  </p>
-                  {o.description ? <p className="mt-2 text-sm">{o.description}</p> : null}
-                  <p className="mt-3 text-sm font-medium text-grey-600">
-                    Booking opens in an upcoming update.
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ) : null}
-    </article>
+    <ProfileView
+      person={person}
+      provider={person.provider}
+      offerings={offerings}
+      actions={<MessageButton targetId={person.id} />}
+    />
   );
 }
