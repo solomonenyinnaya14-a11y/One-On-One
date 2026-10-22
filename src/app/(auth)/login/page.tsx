@@ -28,7 +28,7 @@ export default async function LoginPage({
       <h1 className="font-serif text-4xl font-medium tracking-tight">Welcome back.</h1>
       <p className="mt-3 text-grey-600">Sign in to pick up your conversations.</p>
       <div className="mt-8 space-y-5">
-        <FormMessage error={error === "link" ? "That email link didn't work or has expired. Sign in, or request a new one." : undefined} />
+        <FormMessage error={error === "link" ? "That email link couldn't be used here. If you've already confirmed your email, just sign in. Otherwise request a new link." : undefined} />
         <LoginForm next={safeNext} />
       </div>
       <p className="mt-8 text-center text-grey-600">

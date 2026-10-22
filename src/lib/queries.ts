@@ -10,6 +10,10 @@ export type PersonCard = ProfileRow & { provider: ProviderCard | null };
 
 const PERSON_COLUMNS =
   "id, username, display_name, avatar_path, bio, interests, expertise, accepts_free_chats, created_at";
+// provider_profiles has TWO foreign keys to profiles (user_id and reviewed_by),
+// so an unqualified embed is ambiguous and PostgREST rejects the whole request
+// (PGRST201). Always name the relationship.
+const PROVIDER_REL = "provider_profiles!provider_profiles_user_id_fkey";
 const PROVIDER_COLUMNS = "user_id, headline, about, languages, rating_count, rating_sum";
 
 type RawPerson = ProfileRow & { provider_profiles?: ProviderCard | ProviderCard[] | null };
@@ -33,8 +37,8 @@ export async function listPeople(
 ): Promise<{ people: PersonCard[]; error: boolean }> {
   const limit = opts.limit ?? PAGE_SIZE;
   const embed = opts.providersOnly
-    ? `provider_profiles!inner(${PROVIDER_COLUMNS})`
-    : `provider_profiles(${PROVIDER_COLUMNS})`;
+    ? `${PROVIDER_REL}!inner(${PROVIDER_COLUMNS})`
+    : `${PROVIDER_REL}(${PROVIDER_COLUMNS})`;
 
   let query = supabase
     .from("profiles")
@@ -60,7 +64,7 @@ export async function getPersonByUsername(
 ): Promise<PersonCard | null> {
   const { data } = await supabase
     .from("profiles")
-    .select(`${PERSON_COLUMNS}, provider_profiles(${PROVIDER_COLUMNS})`)
+    .select(`${PERSON_COLUMNS}, ${PROVIDER_REL}(${PROVIDER_COLUMNS})`)
     .eq("username", username.toLowerCase())
     .maybeSingle();
   return data ? toCard(data as unknown as RawPerson) : null;

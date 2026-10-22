@@ -68,7 +68,7 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
     password,
     options: {
       data: { display_name: name.trim() },
-      emailRedirectTo: `${origin}/auth/callback?next=/onboarding`,
+      emailRedirectTo: `${origin}/auth/confirm?next=/onboarding`,
     },
   });
   if (error) return { error: friendlyAuthError(error) };
@@ -92,7 +92,7 @@ export async function requestPasswordReset(_prev: FormState, form: FormData): Pr
 
   const origin = await siteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+    redirectTo: `${origin}/auth/confirm?next=/reset-password`,
   });
   if (error && (error.status === 429 || error.code?.includes("rate_limit"))) {
     return { error: friendlyAuthError(error) };
