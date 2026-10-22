@@ -10,7 +10,10 @@ export function EmptyState({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-grey-300 px-6 py-10 text-center">
+    <div className="card px-6 py-10 text-center">
+      <span aria-hidden="true" className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-navy-50 text-navy-900">
+        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1z" /></svg>
+      </span>
       <p className="font-serif text-xl font-medium">{title}</p>
       <p className="mx-auto mt-2 max-w-sm text-sm text-grey-600">{body}</p>
       {action ? (
@@ -27,7 +30,7 @@ export function EmptyState({
 
 export function ErrorState({ what }: { what: string }) {
   return (
-    <div role="alert" className="rounded-2xl border-2 border-ink bg-grey-50 px-6 py-6">
+    <div role="alert" className="rounded-2xl border border-ink/20 bg-white px-6 py-6 shadow-sm">
       <p className="font-semibold">We couldn&apos;t load {what}.</p>
       <p className="mt-1 text-sm text-grey-600">Check your connection and refresh the page.</p>
     </div>

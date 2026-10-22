@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { markConversationRead, respondToRequest, sendMessage } from "@/app/(app)/actions";
+import { Avatar } from "@/components/ui/avatar";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 
 export type ChatMessage = {
@@ -20,13 +21,15 @@ type Props = {
   canSend: boolean;
   initial: ChatMessage[];
   loadError: boolean;
+  otherName: string;
+  otherAvatarPath: string | null;
 };
 
 function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-export function Chat({ conversationId, me, status: initialStatus, iStarted, canSend, initial, loadError }: Props) {
+export function Chat({ conversationId, me, status: initialStatus, iStarted, canSend, initial, loadError, otherName, otherAvatarPath }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(initial);
   const [status, setStatus] = useState(initialStatus);
   const [draft, setDraft] = useState("");
@@ -117,15 +120,16 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
             }
             const mine = m.sender_id === me;
             return (
-              <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+              <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                {mine ? null : <Avatar name={otherName} path={otherAvatarPath} size="xs" />}
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                    mine ? "bg-navy-900 text-white" : "bg-grey-100 text-ink"
+                    mine ? "rounded-br-md bg-navy-900 text-white" : "rounded-bl-md border border-grey-200 bg-white text-ink"
                   }`}
                 >
                   <p className="whitespace-pre-wrap break-words">{m.body}</p>
                   <p className={`mt-1 text-[11px] ${mine ? "text-white/70" : "text-grey-600"}`}>
-                    {mine ? "You" : "Them"} · {timeLabel(m.created_at)}
+                    {mine ? "You" : otherName.split(" ")[0]} · {timeLabel(m.created_at)}
                   </p>
                 </div>
               </div>
@@ -136,7 +140,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
       </div>
 
       {awaitingMyAnswer ? (
-        <div className="mb-3 rounded-2xl border-2 border-ink p-4">
+        <div className="card mb-3 border-ink/30 p-4">
           <p className="font-semibold">Message request</p>
           <p className="mt-1 text-sm text-grey-600">
             This person isn&apos;t in your conversations yet. Accept to keep talking, or decline.

@@ -35,7 +35,7 @@ export default async function InboxPage() {
             <li key={r.conversation_id}>
               <Link
                 href={`/inbox/${r.conversation_id}`}
-                className="flex items-center gap-4 rounded-2xl border border-grey-200 p-4 hover:bg-grey-50"
+                className="flex items-center gap-4 card p-4 hover:shadow-md"
               >
                 <Avatar name={r.other_display_name} path={r.other_avatar_path} />
                 <div className="min-w-0 flex-1">

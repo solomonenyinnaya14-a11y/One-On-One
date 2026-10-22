@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: "Profile" };
 export default async function MePage() {
   const session = await requireSession();
   const { profile } = session;
+  const { data: isAdmin } = await session.supabase.rpc("am_i_admin");
 
   return (
     <>
@@ -44,6 +45,11 @@ export default async function MePage() {
         <Link href="/me/edit" className="inline-flex min-h-12 items-center justify-center rounded-full bg-navy-900 px-7 font-semibold text-white">
           Edit profile
         </Link>
+        {isAdmin ? (
+          <Link href="/admin/providers" className="inline-flex min-h-12 items-center justify-center rounded-full border-2 border-ink bg-white px-7 font-semibold">
+            Review provider applications
+          </Link>
+        ) : null}
         <form action={signOut}>
           <button className="min-h-12 w-full rounded-full border-2 border-ink px-7 font-semibold">Sign out</button>
         </form>

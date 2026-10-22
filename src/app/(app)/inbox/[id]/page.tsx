@@ -66,6 +66,8 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
         canSend={other?.status === "active"}
         initial={messages}
         loadError={Boolean(error)}
+        otherName={other?.display_name ?? "Unavailable"}
+        otherAvatarPath={other?.avatar_path ?? null}
       />
     </div>
   );

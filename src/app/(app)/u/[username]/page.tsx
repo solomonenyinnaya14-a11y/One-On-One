@@ -72,7 +72,7 @@ export default async function PublicProfilePage({ params }: Params) {
           ) : (
             <ul className="mt-3 space-y-3">
               {offerings.map((o) => (
-                <li key={o.id} className="rounded-2xl border border-grey-200 p-4">
+                <li key={o.id} className="card p-4">
                   <p className="font-semibold">{o.title}</p>
                   <p className="text-sm text-grey-600">
                     {o.kind === "voice" ? "Voice" : "Text"} · {o.duration_minutes} min · {formatNaira(o.price_minor)}

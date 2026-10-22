@@ -14,14 +14,15 @@
   --color-navy-900: #0b2559;
   --color-navy-950: #071a42;
 
-  --color-ink: #000000;
+  --color-ink: #0e1116;
+  --color-canvas: #f7f7f4;
   --color-paper: #ffffff;
 
-  --color-grey-50: #f6f7f9;
-  --color-grey-100: #eceef2;
-  --color-grey-200: #dde1e8;
+  --color-grey-50: #f4f5f7;
+  --color-grey-100: #eceef1;
+  --color-grey-200: #e3e6eb;
   --color-grey-300: #c3c9d4;
-  --color-grey-600: #4b5563;
+  --color-grey-600: #5a6372;
 
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
@@ -34,7 +35,7 @@ html {
 }
 
 body {
-  background: var(--color-paper);
+  background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 1.0625rem;
@@ -79,4 +80,12 @@ body {
     opacity: 1;
     animation: none;
   }
+}
+
+/* Shared card surface: white panel, light border, soft shadow. */
+@utility card {
+  background: var(--color-paper);
+  border: 1px solid var(--color-grey-200);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -8px rgb(15 23 42 / 0.08);
 }

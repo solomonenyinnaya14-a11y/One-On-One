@@ -39,7 +39,7 @@ export function ProfileForm({ action, profile, mode }: Props) {
       <Field name="interests" label="Interests" defaultValue={(profile.interests ?? []).join(", ")} hint="Optional. Separate with commas, up to 10." />
 
       {mode === "edit" ? (
-        <fieldset className="space-y-4 rounded-2xl border border-grey-200 p-4">
+        <fieldset className="space-y-4 card p-4">
           <legend className="px-2 text-sm font-semibold">Privacy</legend>
           <label className="flex items-start gap-3">
             <input type="checkbox" name="is_discoverable" defaultChecked={profile.is_discoverable ?? true} className="mt-1 h-5 w-5 accent-navy-900" />

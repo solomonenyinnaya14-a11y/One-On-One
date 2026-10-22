@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
+import { formatNaira } from "@/lib/format";
 import type { PersonCard } from "@/lib/queries";
 
 export function PersonListItem({ person }: { person: PersonCard }) {
@@ -11,14 +12,14 @@ export function PersonListItem({ person }: { person: PersonCard }) {
     <li>
       <Link
         href={`/u/${person.username}`}
-        className="flex items-center gap-4 rounded-2xl border border-grey-200 bg-paper p-4 transition-colors hover:bg-grey-50"
+        className="card flex items-center gap-4 p-4 transition-shadow hover:shadow-md"
       >
         <Avatar name={person.display_name} path={person.avatar_path} />
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
             <span className="truncate font-semibold text-ink">{person.display_name}</span>
             {person.provider ? (
-              <span className="shrink-0 rounded-full bg-navy-900 px-2 py-0.5 text-xs font-semibold text-white">
+              <span className="shrink-0 rounded-full bg-navy-50 px-2 py-0.5 text-xs font-semibold text-navy-900">
                 Provider
               </span>
             ) : null}
@@ -27,6 +28,12 @@ export function PersonListItem({ person }: { person: PersonCard }) {
           {person.provider?.headline || person.bio ? (
             <span className="mt-1 line-clamp-2 block text-sm text-ink">
               {person.provider?.headline ?? person.bio}
+            </span>
+          ) : null}
+          {person.offerings.length > 0 ? (
+            <span className="mt-2 block text-sm font-semibold text-navy-900">
+              {person.offerings[0].kind === "voice" ? "Voice" : "Text"} · {person.offerings[0].duration_minutes} min · {formatNaira(person.offerings[0].price_minor)}
+              {person.offerings.length > 1 ? ` · +${person.offerings.length - 1} more` : ""}
             </span>
           ) : null}
           {rating ? (

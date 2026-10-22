@@ -34,7 +34,7 @@ export function BottomNav({ unread = 0 }: { unread?: number }) {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-grey-200 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-grey-200 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md"
     >
       <ul className="mx-auto flex max-w-2xl">
         {appTabs.map((tab) => {
