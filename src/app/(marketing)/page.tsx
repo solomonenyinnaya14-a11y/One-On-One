@@ -1,137 +1,48 @@
-import { ConversationVisual } from "@/components/conversation-visual";
+import { BrandMark } from "@/components/brand-mark";
 import { ButtonLink } from "@/components/ui/button-link";
 import { ctaLabels, routes, siteConfig } from "@/lib/site";
-
-const steps = [
-  {
-    title: "Find someone",
-    body: "Browse people by what they know and what you want to talk about. Compare prices and availability before you decide.",
-  },
-  {
-    title: "Book a time",
-    body: "Choose a text or voice conversation, see the price up front, and pick a time that works for both of you.",
-  },
-  {
-    title: "Have the conversation",
-    body: "Talk one on one. When it's done, you can review the person you spoke with.",
-  },
+const steps=[
+  {title:"Discover someone",body:"Search by username or browse people who are open to being found."},
+  {title:"Send a request",body:"Say hello. Your first message arrives as a request, so the other person stays in control."},
+  {title:"Start talking",body:"Once they accept, your private chat is open. Come back anytime to continue."},
 ] as const;
-
-const principles = [
-  {
-    title: "Private by design",
-    body: "Only you and the person you're talking to can see a conversation.",
-  },
-  {
-    title: "Prices you can see first",
-    body: "Every provider sets their own price. You see it before you book.",
-  },
-  {
-    title: "Reviews from real conversations",
-    body: "Only people who have finished a conversation can review it.",
-  },
+const principles=[
+  {title:"You choose who can chat",body:"Message requests put the recipient in control of who can start a conversation."},
+  {title:"Your chats stay private",body:"Conversations are for the people in them, not a public feed."},
+  {title:"Pick up where you left off",body:"Your accepted conversations and message history stay in your inbox."},
 ] as const;
-
-export default function Home() {
-  return (
-    <>
-      <section className="mx-auto grid max-w-6xl gap-12 px-5 pb-16 pt-12 sm:px-8 sm:pt-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-16 lg:pb-24 lg:pt-24">
-        <div>
-          <h1 className="max-w-3xl font-serif text-[2.75rem] font-medium leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl">
-            {siteConfig.headline}
-          </h1>
-          <p className="mt-6 max-w-xl text-lg text-grey-600 sm:text-xl sm:leading-relaxed">
-            {siteConfig.description}
-          </p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href={routes.explore}>{ctaLabels.explore}</ButtonLink>
-            <ButtonLink href={routes.becomeProvider} variant="secondary">
-              {ctaLabels.becomeProvider}
-            </ButtonLink>
-          </div>
-        </div>
-        <div className="lg:justify-self-end">
-          <ConversationVisual />
-        </div>
-      </section>
-
-      <section id="how-it-works" className="border-t border-grey-200">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:grid lg:grid-cols-[0.8fr_1.2fr] lg:gap-16 lg:py-24">
-          <h2 className="font-serif text-3xl font-medium tracking-tight sm:text-4xl">
-            How it works
-          </h2>
-          <ol className="mt-10 divide-y divide-grey-200 border-y border-grey-200 lg:mt-0">
-            {steps.map((step, index) => (
-              <li key={step.title} className="flex gap-6 py-7">
-                <span
-                  aria-hidden="true"
-                  className="w-8 shrink-0 font-serif text-4xl font-medium leading-none text-navy-900"
-                >
-                  {index + 1}
-                </span>
-                <div>
-                  <h3 className="text-xl font-semibold">{step.title}</h3>
-                  <p className="mt-2 max-w-prose text-grey-600">{step.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="bg-grey-50">
-        <div className="mx-auto grid max-w-6xl gap-px px-5 py-16 sm:px-8 md:grid-cols-2 lg:py-24">
-          <div className="md:pr-12">
-            <h2 className="font-serif text-3xl font-medium tracking-tight sm:text-4xl">
-              Write it out
-            </h2>
-            <p className="mt-4 max-w-md text-grey-600">
-              Text conversations let you take your time. Think, write back, and
-              keep going at your own pace.
-            </p>
-          </div>
-          <div className="mt-10 border-t border-grey-300 pt-10 md:mt-0 md:border-l md:border-t-0 md:pl-12 md:pt-0">
-            <h2 className="font-serif text-3xl font-medium tracking-tight sm:text-4xl">
-              Talk it through
-            </h2>
-            <p className="mt-4 max-w-md text-grey-600">
-              Voice conversations happen live, right in your browser, with
-              nothing to install.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:py-24">
-        <h2 className="max-w-xl font-serif text-3xl font-medium tracking-tight sm:text-4xl">
-          Built for honest conversations
-        </h2>
-        <dl className="mt-10 grid gap-8 md:grid-cols-3 md:gap-12">
-          {principles.map((item) => (
-            <div key={item.title} className="border-t-2 border-ink pt-5">
-              <dt className="text-xl font-semibold">{item.title}</dt>
-              <dd className="mt-2 text-grey-600">{item.body}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <section id="for-providers" className="on-navy bg-navy-950 text-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-16 sm:px-8 md:flex-row md:items-center md:justify-between lg:py-20">
-          <div className="max-w-xl">
-            <h2 className="font-serif text-3xl font-medium tracking-tight sm:text-4xl">
-              Have experience worth sharing?
-            </h2>
-            <p className="mt-4 text-lg text-navy-100">
-              Set your topics, your price and the times you&apos;re available.
-              Then talk with people who want to learn from you.
-            </p>
-          </div>
-          <ButtonLink href={routes.becomeProvider} variant="inverse" className="shrink-0">
-            {ctaLabels.becomeProvider}
-          </ButtonLink>
-        </div>
-      </section>
-    </>
-  );
+export default function Home(){
+ return <>
+  <section className="relative isolate overflow-hidden bg-navy-950 text-white">
+   <div aria-hidden="true" className="absolute -right-24 -top-28 -z-10 h-96 w-96 rounded-full border border-white/10 sm:h-[34rem] sm:w-[34rem]"/>
+   <div aria-hidden="true" className="absolute -right-8 top-10 -z-10 h-64 w-64 rounded-full border border-white/10 sm:h-96 sm:w-96"/>
+   <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-20 lg:py-28">
+    <div>
+     <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-navy-100"><BrandMark className="h-4 w-7"/><span>Real people. Private conversations.</span></div>
+     <h1 className="max-w-3xl font-serif text-5xl font-medium leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">{siteConfig.headline}</h1>
+     <p className="mt-6 max-w-xl text-lg leading-relaxed text-navy-100 sm:text-xl">{siteConfig.description}</p>
+     <div className="mt-9 flex flex-col gap-3 sm:flex-row"><ButtonLink href={routes.getStarted}>{ctaLabels.explore}</ButtonLink><ButtonLink href={routes.signIn} variant="inverse">I already have an account</ButtonLink></div>
+     <p className="mt-4 text-sm text-navy-100">Free to discover people and start a message request.</p>
+    </div>
+    <div className="mx-auto w-full max-w-md rounded-[2rem] border border-white/15 bg-white p-4 text-ink shadow-2xl shadow-black/20 sm:p-5">
+     <div className="flex items-center gap-3 border-b border-grey-200 px-2 pb-4"><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-navy-900 text-white"><BrandMark className="h-5 w-8"/></div><div><p className="font-semibold">Your conversations</p><p className="text-sm text-grey-600">A little closer, one chat at a time</p></div><span className="ml-auto h-2.5 w-2.5 rounded-full bg-emerald-500" aria-hidden="true"/></div>
+     <div className="space-y-4 px-2 py-5">
+      <div className="flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-100 text-sm font-bold text-navy-900">A</div><div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-grey-50 px-4 py-3"><p className="text-xs font-semibold text-grey-600">Alex · Message request</p><p className="mt-1 text-sm">Hey, I’d love to hear your perspective on this.</p></div></div>
+      <div className="ml-8 rounded-2xl border border-navy-100 bg-navy-50 px-4 py-3"><p className="text-xs font-semibold text-navy-900">You’re in control</p><p className="mt-1 text-sm text-grey-600">Accept a request to open the private chat.</p></div>
+      <div className="flex items-start justify-end gap-3"><div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-navy-900 px-4 py-3 text-white"><p className="text-xs font-semibold text-white/70">You</p><p className="mt-1 text-sm">Accepted. Let’s talk.</p></div><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-grey-100 text-sm font-bold">Y</div></div>
+     </div>
+     <div className="flex items-center gap-2 border-t border-grey-200 px-2 pt-4"><div className="h-11 flex-1 rounded-full border border-grey-200 bg-grey-50 px-4 text-sm leading-[2.7rem] text-grey-600">Write a message…</div><div className="flex h-11 w-11 items-center justify-center rounded-full bg-navy-900 text-white" aria-hidden="true">↑</div></div>
+     <p className="mt-3 text-center text-[11px] text-grey-600">Illustration · not a real conversation</p>
+    </div>
+   </div>
+  </section>
+  <section id="how-it-works" className="border-b border-grey-200"><div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:py-24">
+   <p className="text-xs font-bold uppercase tracking-[0.18em] text-navy-900">Simple by design</p><h2 className="mt-3 max-w-xl font-serif text-3xl font-medium tracking-tight sm:text-4xl">A better way to start a conversation.</h2>
+   <ol className="mt-10 grid gap-5 md:grid-cols-3">{steps.map((step,index)=><li key={step.title} className="card p-6 sm:p-7"><span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-navy-50 font-serif text-xl font-semibold text-navy-900">{index+1}</span><h3 className="mt-5 text-xl font-semibold">{step.title}</h3><p className="mt-2 leading-relaxed text-grey-600">{step.body}</p></li>)}</ol>
+  </div></section>
+  <section id="privacy" className="bg-grey-50"><div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:py-24"><h2 className="max-w-xl font-serif text-3xl font-medium tracking-tight sm:text-4xl">Connection, with your choice at the center.</h2>
+   <dl className="mt-10 grid gap-8 md:grid-cols-3 md:gap-12">{principles.map((item)=><div key={item.title} className="border-t-2 border-navy-900 pt-5"><dt className="text-xl font-semibold">{item.title}</dt><dd className="mt-2 leading-relaxed text-grey-600">{item.body}</dd></div>)}</dl>
+  </div></section>
+  <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:py-24"><div className="rounded-3xl bg-navy-950 px-6 py-10 text-white sm:px-10 sm:py-14"><h2 className="max-w-2xl font-serif text-3xl font-medium tracking-tight sm:text-4xl">Someone you haven’t met yet could change your day.</h2><p className="mt-4 max-w-xl text-navy-100">Find them, send a request, and see where the conversation goes.</p><div className="mt-7"><ButtonLink href={routes.getStarted}>{ctaLabels.explore}</ButtonLink></div></div></section>
+ </>;
 }

@@ -1,70 +1,41 @@
 # One On One
 
-A marketplace where people discover and pay other people for one-to-one text or voice conversations.
+One On One is a messaging-first application for discovering people, sending message requests, and chatting privately after the recipient accepts.
 
-**Status:** foundation and public landing page only. Accounts, profiles, discovery, bookings, payments and voice are not built yet. `/explore` and `/become-a-provider` are honest "not open yet" pages.
+**MVP scope:** account registration, user profiles, username search, Discovery, incoming and outgoing message requests, private text messaging, and a persistent Messages inbox.
+
+**Explicitly deferred:** paid conversations, booking and scheduling, provider subscriptions, services, commissions, payments, earnings, withdrawals, and video calling. Existing marketplace database objects are retained for possible future use, but the MVP UI does not expose those features.
 
 ## Stack
-
-- Next.js (App Router) and TypeScript
+- Next.js App Router and TypeScript
 - Tailwind CSS v4, design tokens in `src/app/globals.css`
-- Supabase (auth, Postgres, storage): project `One-On-One`, ref `vjebivcrhtaeqeofqlli`
-- Vercel project `one-on-one`, deployed from this repository
+- Supabase Auth, Postgres, Row Level Security, and Realtime
+- Supabase project `One-On-One`, ref `vjebivcrhtaeqeofqlli`
+- Vercel project `one-on-one`
 - Vitest and Testing Library
 
-One On One is fully separate from Gista: its own repository, Supabase project and Vercel project.
+One On One is separate from Gista: its own repository, Supabase project, and Vercel project.
 
-## Getting started
+## Core user flow
+1. Sign up and set a username.
+2. Discover people or search by username.
+3. Open a profile and send a message request.
+4. The recipient accepts or declines the request.
+5. Once accepted, both people can continue a private text conversation.
+6. Accepted conversations and message history remain in Messages.
 
+## Local development
 Requires Node 20.9 or newer.
-
 ```bash
 npm install
-cp .env.example .env.local   # then fill in the values
+cp .env.example .env.local
+# Fill in the Supabase values from the One On One project.
+npm run check
 npm run dev
 ```
 
-## Scripts
-
-| Command | What it does |
-|---|---|
-| `npm run dev` | Start the dev server |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | TypeScript, no emit |
-| `npm test` | Unit and component tests |
-| `npm run build` | Production build |
-| `npm run check` | All of the above, in order |
-
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build on every push to `main` and `feat/**`, and on pull requests.
-
-## Environment variables
-
-See `.env.example`. Only values prefixed `NEXT_PUBLIC_` reach the browser. `SUPABASE_SECRET_KEY` and any payment or voice secrets are server-only and must never be committed or imported in client code.
-
-| Variable | Scope | Required now |
-|---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | public | optional (defaults to localhost) |
-| `NEXT_PUBLIC_SUPABASE_URL` | public | not yet used |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | public | not yet used |
-| `SUPABASE_SECRET_KEY` | server only | not yet used |
-
-## Design system
-
-- Navy `#0b2559` is the brand colour, black is for text, white is the background, and neutral greys handle borders, secondary text and surfaces. Purple is not used.
-- Headlines use Newsreader, body text uses Hanken Grotesk.
-- Buttons are pill-shaped with at least 48px touch height; keyboard focus is always visible; motion respects `prefers-reduced-motion`.
-- The landing-page illustration uses grey bars, never invented messages, people, ratings or testimonials.
-
-## Structure
-
-```
-src/
-  app/            routes, layout, global styles
-  components/     shared UI (header, footer, buttons, illustration)
-  lib/            site copy and route constants
-```
-
-## Working agreements
-
-- Work happens on feature branches; nothing merges to `main` or ships to production without the product owner's approval.
-- Row Level Security, server-side authorization and server-verified payments are required for every feature that touches data or money.
+## Safety and implementation notes
+- The recipient must accept a message request before the conversation becomes an accepted chat.
+- Message limits and access checks must be enforced by database functions and Row Level Security, not only by the UI.
+- Do not use real payments or expose marketplace routes in the messaging-first MVP.
+- Do not seed fake users or conversations in a live environment.

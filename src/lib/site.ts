@@ -1,22 +1,8 @@
 export const siteConfig = {
   name: "One On One",
-  headline: "One conversation can change your perspective.",
-  description:
-    "Find people worth talking to. Get advice, explore new perspectives, and learn from real experiences through one-on-one conversations.",
+  headline: "Find your people. Start a conversation.",
+  description: "Discover people by name or username, send a message request, and chat privately once they accept.",
 } as const;
-
-export const routes = {
-  home: "/",
-  explore: "/explore",
-  becomeProvider: "/become-a-provider",
-} as const;
-
-export const primaryNav = [
-  { label: "How it works", href: "/#how-it-works" },
-  { label: "For providers", href: "/#for-providers" },
-] as const;
-
-export const ctaLabels = {
-  explore: "Explore People",
-  becomeProvider: "Become a Provider",
-} as const;
+export const routes = { home: "/", explore: "/explore", getStarted: "/register", signIn: "/login", becomeProvider: "/login" } as const;
+export const primaryNav = [{ label: "How it works", href: "/#how-it-works" }, { label: "Privacy", href: "/#privacy" }] as const;
+export const ctaLabels = { explore: "Get started", becomeProvider: "Sign in" } as const;
