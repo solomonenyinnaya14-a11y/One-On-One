@@ -27,7 +27,7 @@ export function SiteFooter() {
 
         <div className="text-sm text-grey-600 md:text-right">
           <p>&copy; {new Date().getFullYear()} {siteConfig.name}</p>
-          <p className="mt-1 text-xs">A product by Black Core Tech</p>
+          <p className="mt-1 text-xs">By Black Core Tech</p>
         </div>
       </div>
     </footer>
