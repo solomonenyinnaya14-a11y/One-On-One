@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { markConversationRead, respondToRequest, sendMessage } from "@/app/(app)/actions";
 import { refreshPeerReadAt } from "@/app/(app)/safety-actions";
 import { Avatar } from "@/components/ui/avatar";
@@ -32,6 +33,7 @@ function timeLabel(iso: string) {
 }
 
 export function Chat({ conversationId, me, status: initialStatus, iStarted, canSend, initial, loadError, otherName, otherAvatarPath, initialPeerReadAt }: Props) {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initial);
   const [status, setStatus] = useState(initialStatus);
   const [draft, setDraft] = useState("");
@@ -48,6 +50,12 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
 
   useEffect(() => {
     let active = true;
+    // Opening the conversation marks incoming messages as read. Refreshing the
+    // server-rendered inbox data keeps its unread badge in sync when navigating back.
+    void (async () => {
+      await markConversationRead(conversationId);
+      if (active) router.refresh();
+    })();
     const pollReadStatus = async () => { const value = await refreshPeerReadAt(conversationId); if (active) setPeerReadAt(value); };
     void pollReadStatus();
     const readTimer = window.setInterval(() => { void pollReadStatus(); }, 10000);
