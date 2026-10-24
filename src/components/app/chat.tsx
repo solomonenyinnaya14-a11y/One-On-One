@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { markConversationRead, respondToRequest, sendMessage } from "@/app/(app)/actions";
+import { refreshPeerReadAt } from "@/app/(app)/safety-actions";
 import { Avatar } from "@/components/ui/avatar";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 
@@ -23,13 +24,14 @@ type Props = {
   loadError: boolean;
   otherName: string;
   otherAvatarPath: string | null;
+  initialPeerReadAt: string | null;
 };
 
 function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-export function Chat({ conversationId, me, status: initialStatus, iStarted, canSend, initial, loadError, otherName, otherAvatarPath }: Props) {
+export function Chat({ conversationId, me, status: initialStatus, iStarted, canSend, initial, loadError, otherName, otherAvatarPath, initialPeerReadAt }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(initial);
   const [status, setStatus] = useState(initialStatus);
   const [draft, setDraft] = useState("");
@@ -37,6 +39,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
   const [sending, startSend] = useTransition();
   const [answering, startAnswer] = useTransition();
   const [live, setLive] = useState<"connecting" | "live" | "offline">("connecting");
+  const [peerReadAt, setPeerReadAt] = useState<string | null>(initialPeerReadAt);
   const bottom = useRef<HTMLDivElement>(null);
 
   function add(m: ChatMessage) {
@@ -44,8 +47,12 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
   }
 
   useEffect(() => {
+    let active = true;
+    const pollReadStatus = async () => { const value = await refreshPeerReadAt(conversationId); if (active) setPeerReadAt(value); };
+    void pollReadStatus();
+    const readTimer = window.setInterval(() => { void pollReadStatus(); }, 10000);
     const supabase = createBrowserSupabase();
-    if (!supabase) return;
+    if (!supabase) return () => { active = false; window.clearInterval(readTimer); };
     const channel = supabase
       .channel(`conversation:${conversationId}`)
       .on(
@@ -64,6 +71,8 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
       )
       .subscribe((s) => setLive(s === "SUBSCRIBED" ? "live" : s === "CLOSED" || s === "CHANNEL_ERROR" ? "offline" : "connecting"));
     return () => {
+      active = false;
+      window.clearInterval(readTimer);
       void supabase.removeChannel(channel);
     };
   }, [conversationId, me]);
@@ -129,7 +138,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
                 >
                   <p className="whitespace-pre-wrap break-words">{m.body}</p>
                   <p className={`mt-1 text-[11px] ${mine ? "text-white/70" : "text-grey-600"}`}>
-                    {mine ? "You" : otherName.split(" ")[0]} · {timeLabel(m.created_at)}
+                    {mine ? "You" : otherName.split(" ")[0]} · {timeLabel(m.created_at)}{mine ? <span className={peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.created_at).getTime() ? "ml-2 font-semibold text-sky-300" : "ml-2 text-white/60"} aria-label={peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.created_at).getTime() ? "Read" : "Sent"}>{peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.created_at).getTime() ? "✓✓" : "✓"}</span> : null}
                   </p>
                 </div>
               </div>

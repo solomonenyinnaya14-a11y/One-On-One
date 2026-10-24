@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Chat, type ChatMessage } from "@/components/app/chat";
 import { Avatar } from "@/components/ui/avatar";
+import { OnlineStatus } from "@/components/app/presence";
+import { SafetyControls } from "@/components/app/safety-controls";
 import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Conversation" };
@@ -26,7 +28,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
   const [{ data: other }, { data: rows, error }] = await Promise.all([
     session.supabase
       .from("profiles")
-      .select("id, username, display_name, avatar_path, status")
+      .select("id, username, display_name, avatar_path, status, last_seen_at, show_online_status")
       .eq("id", otherId)
       .maybeSingle(),
     session.supabase
@@ -38,6 +40,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
   ]);
 
   const messages = ((rows ?? []) as ChatMessage[]).reverse();
+  const { data: peerReadAt } = await session.supabase.rpc("conversation_peer_read_at", { p_conversation: id });
   await session.supabase.rpc("mark_conversation_read", { p_conversation: id });
 
   return (
@@ -56,6 +59,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
             <p className="truncate font-semibold">{other?.display_name ?? "Unavailable"}</p>
           )}
           {other?.username ? <p className="truncate text-sm text-grey-600">@{other.username}</p> : null}
+          <OnlineStatus targetId={otherId} lastSeenAt={other?.last_seen_at} showStatus={other?.show_online_status ?? true} className="mt-1" />
         </div>
       </header>
       <Chat
@@ -68,7 +72,9 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
         loadError={Boolean(error)}
         otherName={other?.display_name ?? "Unavailable"}
         otherAvatarPath={other?.avatar_path ?? null}
+        initialPeerReadAt={typeof peerReadAt === "string" ? peerReadAt : null}
       />
+      {other ? <SafetyControls targetId={otherId} targetName={other.display_name} /> : null}
     </div>
   );
 }

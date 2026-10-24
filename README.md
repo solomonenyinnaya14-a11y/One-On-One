@@ -34,6 +34,12 @@ npm run check
 npm run dev
 ```
 
+## Messaging MVP safety and presence
+- Block and unblock people from profile/chat safety controls and Settings.
+- Report users through a rate-limited server-side function; reports are private and not readable through the public Data API.
+- Online status is opt-out and based on a 45-second heartbeat, with a two-minute online window.
+- Sent messages show a single tick; messages show double ticks after the other participant opens the chat. Read receipts use the existing per-conversation read cursor.
+
 ## Safety and implementation notes
 - The recipient must accept a message request before the conversation becomes an accepted chat.
 - Message limits and access checks must be enforced by database functions and Row Level Security, not only by the UI.

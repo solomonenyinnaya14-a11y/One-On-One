@@ -11,6 +11,8 @@ export type ProfileRow = {
   onboarding_completed_at?: string | null;
   status?: string;
   created_at: string;
+  last_seen_at?: string | null;
+  show_online_status?: boolean;
 };
 
 export type ProviderCard = {

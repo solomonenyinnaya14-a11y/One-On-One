@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/app/bottom-nav";
+import { PresenceHeartbeat } from "@/components/app/presence";
 import { NotConfigured } from "@/components/ui/not-configured";
 import { getSession } from "@/lib/session";
 import { getSupabaseEnv } from "@/lib/supabase/env";
@@ -34,6 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <>
+      <PresenceHeartbeat />
       <main id="main" className="mx-auto min-h-dvh max-w-2xl px-5 pb-28 pt-6">
         {children}
       </main>

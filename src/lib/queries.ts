@@ -4,7 +4,7 @@ import type { ProfileRow } from "@/lib/types";
 type Client = NonNullable<Awaited<ReturnType<typeof createClient>>>;
 export const PAGE_SIZE = 20;
 export type PersonCard = ProfileRow;
-const PROFILE_COLUMNS = "id, username, display_name, avatar_path, bio, interests, expertise, accepts_free_chats, is_discoverable, status, created_at";
+const PROFILE_COLUMNS = "id, username, display_name, avatar_path, bio, interests, expertise, accepts_free_chats, is_discoverable, status, created_at, last_seen_at, show_online_status";
 /** Messaging-first discovery. RLS remains the final authority for visibility and blocks. */
 export async function listPeople(supabase: Client, me: string, opts: { q?: string; limit?: number } = {}): Promise<{ people: PersonCard[]; error: boolean }> {
   const limit = Math.min(Math.max(opts.limit ?? PAGE_SIZE, 1), 500), term = sanitizeSearchTerm(opts.q);

@@ -20,7 +20,7 @@ export const getSession = cache(async (): Promise<SessionContext | null> => {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, username, display_name, avatar_path, bio, interests, expertise, accepts_free_chats, is_discoverable, timezone, status, onboarding_completed_at, created_at",
+      "id, username, display_name, avatar_path, bio, interests, expertise, accepts_free_chats, is_discoverable, timezone, status, onboarding_completed_at, created_at, last_seen_at, show_online_status",
     )
     .eq("id", auth.user.id)
     .maybeSingle();
