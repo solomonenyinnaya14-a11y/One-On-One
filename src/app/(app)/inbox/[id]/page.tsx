@@ -25,6 +25,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
   if (!convo) notFound();
 
   const otherId = convo.user_a === session.userId ? convo.user_b : convo.user_a;
+  const { data: myBlock } = await session.supabase.from("blocks").select("blocked_id").eq("blocker_id", session.userId).eq("blocked_id", otherId).maybeSingle();
   const [{ data: other }, { data: rows, error }] = await Promise.all([
     session.supabase
       .from("profiles")
@@ -67,7 +68,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
         me={session.userId}
         status={convo.status}
         iStarted={convo.initiator_id === session.userId}
-        canSend={other?.status === "active"}
+        canSend={other?.status === "active" && !myBlock}
         initial={messages}
         loadError={Boolean(error)}
         otherName={other?.display_name ?? "Unavailable"}

@@ -38,6 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <PresenceHeartbeat />
       <main id="main" className="mx-auto min-h-dvh max-w-2xl px-5 pb-28 pt-6">
         {children}
+        <footer className="mt-10 border-t border-grey-200 pt-4 text-center text-xs text-grey-600">One On One by Black Core Tech</footer>
       </main>
       <BottomNav unread={Number(unread ?? 0)} />
     </>
