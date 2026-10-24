@@ -26,7 +26,7 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
 
   const otherId = convo.user_a === session.userId ? convo.user_b : convo.user_a;
   const { data: myBlock } = await session.supabase.from("blocks").select("blocked_id").eq("blocker_id", session.userId).eq("blocked_id", otherId).maybeSingle();
-  const [{ data: other }, { data: rows, error }] = await Promise.all([
+  const [profileResult, { data: rows, error }] = await Promise.all([
     session.supabase
       .from("profiles")
       .select("id, username, display_name, avatar_path, status, last_seen_at, show_online_status")
@@ -39,6 +39,46 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
       .order("created_at", { ascending: false })
       .limit(200),
   ]);
+
+  // Presence columns are optional until the presence migration is applied.
+  // If they are missing, the whole profile query fails; that previously made
+  // an existing participant look unavailable even when their account was active.
+  let other: {
+    id: string;
+    username: string | null;
+    display_name: string;
+    avatar_path: string | null;
+    status: string;
+    last_seen_at: string | null;
+    show_online_status: boolean;
+  } | null = profileResult.data
+    ? {
+        ...profileResult.data,
+        last_seen_at: profileResult.data.last_seen_at ?? null,
+        show_online_status: profileResult.data.show_online_status ?? true,
+      }
+    : null;
+
+  const profileError = profileResult.error;
+  const missingPresenceColumns =
+    profileError?.code === "42703" ||
+    (Boolean(profileError?.message.includes("column")) &&
+      Boolean(
+        profileError?.message.includes("last_seen_at") ||
+          profileError?.message.includes("show_online_status"),
+      ));
+
+  if (missingPresenceColumns) {
+    const { data: coreProfile, error: coreProfileError } = await session.supabase
+      .from("profiles")
+      .select("id, username, display_name, avatar_path, status")
+      .eq("id", otherId)
+      .maybeSingle();
+
+    other = !coreProfile || coreProfileError
+      ? null
+      : { ...coreProfile, last_seen_at: null, show_online_status: true };
+  }
 
   const messages = ((rows ?? []) as ChatMessage[]).reverse();
   const { data: peerReadAt } = await session.supabase.rpc("conversation_peer_read_at", { p_conversation: id });
