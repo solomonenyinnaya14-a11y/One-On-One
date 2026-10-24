@@ -14,7 +14,8 @@ export async function listPeople(supabase: Client, me: string, opts: { q?: strin
   if (error) { console.error("listPeople failed", { code: error.code, message: error.message }); return { people: [], error: true }; }
   return { people: (data ?? []) as unknown as PersonCard[], error: false };
 }
+/** A chat participant may still open the other person's profile after they hide from Discovery. RLS decides whether that is allowed. */
 export async function getPersonByUsername(supabase: Client, username: string): Promise<PersonCard | null> {
-  const { data } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("username", username.toLowerCase()).eq("is_discoverable", true).eq("status", "active").maybeSingle();
+  const { data } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("username", username.toLowerCase()).eq("status", "active").maybeSingle();
   return data ? data as unknown as PersonCard : null;
 }
