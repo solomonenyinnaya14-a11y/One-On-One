@@ -84,7 +84,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
       window.clearInterval(readTimer);
       void supabase.removeChannel(channel);
     };
-  }, [conversationId, me]);
+  }, [conversationId, me, router]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "end" });
