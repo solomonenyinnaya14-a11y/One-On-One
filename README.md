@@ -2,7 +2,7 @@
 
 One On One is a messaging-first application for discovering people, sending message requests, and chatting privately after the recipient accepts.
 
-**MVP scope:** account registration, user profiles, username search, Discovery, incoming and outgoing message requests, private text messaging, voice notes up to 60 seconds, and a persistent Messages inbox.
+**MVP scope:** account registration, user profiles, username search, Discovery, incoming and outgoing message requests, private text messaging, voice notes up to 2 minutes, and a persistent Messages inbox.
 
 **Explicitly deferred:** paid conversations, booking and scheduling, provider subscriptions, services, commissions, payments, earnings, withdrawals, and video calling. Existing marketplace database objects are retained for possible future use, but the MVP UI does not expose those features.
 
@@ -39,7 +39,7 @@ npm run dev
 - Report users through a rate-limited server-side function; reports are private and not readable through the public Data API.
 - Online status is opt-out and based on a 45-second heartbeat, with a two-minute online window.
 - Sent messages show a single tick; messages show double ticks after the other participant opens the chat. Read receipts use the existing per-conversation read cursor.
-- Voice notes are limited to 60 seconds and stored in a private 10 MB-per-file bucket; only conversation participants can read audio.
+- Voice notes are limited to 2 minutes and stored in a private 20 MB-per-file bucket; only conversation participants can read audio.
 
 ## Safety and implementation notes
 - The recipient must accept a message request before the conversation becomes an accepted chat.
