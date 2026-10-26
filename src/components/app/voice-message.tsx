@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { sendVoiceMessage } from "@/app/(app)/actions";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 
@@ -33,7 +33,7 @@ function Waveform({ levels, active = false }: { levels: number[]; active?: boole
     <div className="flex h-8 min-w-0 flex-1 items-center justify-center gap-[2px]" aria-hidden="true">
       {Array.from({ length: WAVEFORM_BARS }, (_, index) => {
         const value = bars[index] ?? 0.12;
-        return <span key={index} className={active ? "w-[3px] rounded-full bg-red-500" : "w-[3px] rounded-full bg-current opacity-80"}
+        return <span key={index} className={active ? "w-[3px] rounded-full bg-navy-900" : "w-[3px] rounded-full bg-current opacity-80"}
           style={{ height: `${Math.max(4, Math.round(value * 28))}px` }} />;
       })}
     </div>
@@ -241,12 +241,12 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
   return (
     <div className="flex min-w-0 flex-col items-stretch gap-1">
       {recording ? (
-        <div className="flex min-h-12 min-w-0 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-2">
-          <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-red-600" aria-label="Recording" />
-          <span className="shrink-0 font-mono text-sm font-semibold text-red-700">{formatTime(seconds)}</span>
+        <div className="flex min-h-12 min-w-0 items-center gap-2 rounded-full border border-grey-300 bg-grey-50 px-3 py-2">
+          <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-navy-900" aria-label="Recording" />
+          <span className="shrink-0 font-mono text-sm font-semibold text-navy-900">{formatTime(seconds)}</span>
           <Waveform levels={levels} active />
-          <button type="button" onClick={cancel} className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-red-700" aria-label="Discard recording">Cancel</button>
-          <button type="button" onClick={() => setLocked((value) => !value)} className="shrink-0 rounded-full border border-red-300 px-2 py-1 text-xs font-semibold text-red-700" aria-pressed={locked}>
+          <button type="button" onClick={cancel} className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-navy-900" aria-label="Discard recording">Cancel</button>
+          <button type="button" onClick={() => setLocked((value) => !value)} className="shrink-0 rounded-full border border-grey-300 px-2 py-1 text-xs font-semibold text-navy-900" aria-pressed={locked}>
             {locked ? "Locked" : "Lock"}
           </button>
           <button type="button" onClick={stop} className="min-h-9 min-w-9 shrink-0 rounded-full bg-navy-900 px-3 text-sm font-bold text-white" aria-label="Finish recording">✓</button>
@@ -307,7 +307,7 @@ function VoiceWavePlayer({ src, mine = false, preview = false }: { src: string; 
     }
   }
 
-  function seek(event: React.MouseEvent<HTMLButtonElement>) {
+  function seek(event: MouseEvent<HTMLButtonElement>) {
     const audio = audioRef.current;
     if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
     const rect = event.currentTarget.getBoundingClientRect();
