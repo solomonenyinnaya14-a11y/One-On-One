@@ -53,7 +53,7 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
   const meterTimer = useRef<number | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
   const analyser = useRef<AnalyserNode | null>(null);
-  const previewUrlRef = useRef<string | null>(null);
+  const previewUrlRef = useRef<string | null>(null);\n  const pointerHeld = useRef(false);\n  const lockedRef = useRef(false);\n  const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [recording, setRecording] = useState(false);
   const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -263,7 +263,7 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
           🎙️
         </button>
       )}
-      {recording ? <p className="text-center text-[11px] text-grey-600">{locked ? "Recording hands-free · tap ✓ when finished" : "Recording… tap ✓ to preview, or Cancel to discard"}</p> : null}
+      {recording ? <p className="text-center text-[11px] text-grey-600">{locked ? "Recording hands-free · tap ✓ when finished" : "Recording… release to finish · slide up to lock · slide left to cancel"}</p> : null}
       {error ? <p role="alert" className="max-w-72 text-right text-xs font-medium text-red-700">{error}</p> : null}
     </div>
   );
