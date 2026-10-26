@@ -26,7 +26,7 @@ values ('voice-messages', 'voice-messages', false, 20971520,
         array['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg'])
 on conflict (id) do update set
   public = false,
-  file_size_limit = 10485760,
+  file_size_limit = 20971520,
   allowed_mime_types = array['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg'];
 
 drop policy if exists voice_messages_participant_read on storage.objects;
