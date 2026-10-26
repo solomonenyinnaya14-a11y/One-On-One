@@ -5,7 +5,7 @@ import { sendVoiceMessage } from "@/app/(app)/actions";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 
 const BUCKET = "voice-messages";
-const MAX_SECONDS = 60;
+const MAX_SECONDS = 120;
 const MAX_BYTES = 10 * 1024 * 1024;
 
 function supportedMimeType() {
@@ -71,7 +71,7 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
         const blob = new Blob(chunks.current, { type: mimeType });
         if (blob.size === 0) return;
         if (blob.size > MAX_BYTES) {
-          setError("That voice note is too large. Try recording a shorter note.");
+          setError("That voice note is too large to send. Try recording in a quieter place or a shorter note.");
           return;
         }
         const supabase = createBrowserSupabase();
@@ -88,15 +88,26 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
             cacheControl: "3600",
             upsert: false,
           });
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            const detail = uploadError.message.toLowerCase();
+            if (detail.includes("bucket") || detail.includes("not found")) {
+              throw new Error("Voice messaging storage isn't set up on this preview yet. The database migration must be applied first.");
+            }
+            if (detail.includes("row-level security") || detail.includes("policy")) {
+              throw new Error("Voice upload was blocked by storage permissions. The voice-message migration must be applied to this database.");
+            }
+            throw new Error(uploadError.message);
+          }
           const result = await sendVoiceMessage(conversationId, path);
           if (result.error || !result.id) {
             setError(result.error ?? "Your voice note wasn't sent. Please try again.");
             return;
           }
           onSent(result.id, path);
-        } catch {
-          setError("Your voice note wasn't sent. Check your connection and try again.");
+        } catch (uploadFailure) {
+          setError(uploadFailure instanceof Error && uploadFailure.message
+            ? uploadFailure.message
+            : "Your voice note wasn't sent. Check your connection and try again.");
         } finally {
           setBusy(false);
         }
