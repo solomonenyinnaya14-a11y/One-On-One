@@ -19,7 +19,7 @@ type Snapshot = {
 function Metric({ label, value, note }: { label: string; value: number; note?: string }) {
   return <article className="card min-w-0 p-4 sm:p-5">
     <p className="text-sm leading-snug text-grey-600">{label}</p>
-    <p className="mt-2 text-2xl font-semibold tracking-tight text-navy-950 sm:text-3xl">{value.toLocaleString("en-NG")}</p>
+    <p className="mt-2 text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">{value.toLocaleString("en-NG")}</p>
     {note ? <p className="mt-1 text-xs text-grey-500">{note}</p> : null}
   </article>;
 }
@@ -29,7 +29,10 @@ export default async function AdminAnalyticsPage() {
   const { data: isAdmin } = await session.supabase.rpc("am_i_admin");
   if (!isAdmin) notFound();
 
-  const { data, error } = await session.supabase.rpc("admin_analytics_snapshot");
+  const [{ data, error }, { data: dauData, error: dauError }] = await Promise.all([
+    session.supabase.rpc("admin_analytics_snapshot"),
+    session.supabase.rpc("admin_daily_active_users"),
+  ]);
   const stats = (data ?? null) as Snapshot | null;
   const daily = stats?.daily ?? [];
   const maxMessages = Math.max(1, ...daily.map((d) => Number(d.messages ?? 0)));
@@ -37,7 +40,7 @@ export default async function AdminAnalyticsPage() {
   return <>
     <p className="mb-3"><Link href="/admin" className="text-sm font-semibold text-navy-900 underline underline-offset-4">← Administration</Link></p>
     <PageTitle sub="Aggregate usage signals for One On One. No private message content is shown.">Analytics</PageTitle>
-    {error || !stats ? <ErrorState what="analytics" /> : <>
+    {error || dauError || !stats ? <ErrorState what="analytics" /> : <>
       <section>
         <h2 className="mb-3 text-lg font-semibold">Users</h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -45,8 +48,9 @@ export default async function AdminAnalyticsPage() {
           <Metric label="Active accounts" value={stats.activeUsers} note="Not suspended" />
           <Metric label="New · 7 days" value={stats.newUsers7d} />
           <Metric label="New · 30 days" value={stats.newUsers30d} />
-          <Metric label="Seen · 7 days" value={stats.seenUsers7d} note="Presence heartbeat recorded" />
-          <Metric label="Seen · 30 days" value={stats.seenUsers30d} note="Presence heartbeat recorded" />
+          <Metric label="DAU · seen in 24 hours" value={Number(dauData ?? 0)} note="Presence heartbeat recorded" />
+          <Metric label="WAU · seen in 7 days" value={stats.seenUsers7d} note="Presence heartbeat recorded" />
+          <Metric label="MAU · seen in 30 days" value={stats.seenUsers30d} note="Presence heartbeat recorded" />
         </div>
       </section>
       <section className="mt-7">
