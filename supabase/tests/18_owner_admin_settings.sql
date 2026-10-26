@@ -49,6 +49,8 @@ begin
   perform t.as_user(owner_id);
   perform t.eq(t.rows(format('select * from public.admin_list_reports() where report_id = %L', report_id)), 1, 'owner can inspect reports');
   perform public.admin_update_report_status(report_id, 'reviewing');
+  perform t.reset();
   perform t.eq((select status from public.user_reports where id=report_id), 'reviewing', 'admin can update report status');
+  perform t.as_user(owner_id);
   perform t.reset();
 end $$;
