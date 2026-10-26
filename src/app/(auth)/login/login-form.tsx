@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { Field } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
 import { FormMessage } from "@/components/ui/form-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { FormState } from "@/lib/form-state";
@@ -17,7 +18,7 @@ export function LoginForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <FormMessage error={state.error} message={state.message} />
       <Field name="email" label="Email" type="email" autoComplete="email" inputMode="email" error={state.fieldErrors?.email} />
-      <Field name="password" label="Password" type="password" autoComplete="current-password" error={state.fieldErrors?.password} />
+      <PasswordField name="password" label="Password" autoComplete="current-password" error={state.fieldErrors?.password} />
       <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>
       <p className="text-center text-sm">
         <Link href="/forgot-password" className="font-semibold text-navy-900 underline underline-offset-4">

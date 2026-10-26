@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { FormState } from "@/lib/form-state";
 import { requireSession } from "@/lib/session";
 
@@ -19,4 +20,35 @@ export async function reviewProvider(userId: string, approve: boolean, reason: s
   }
   revalidatePath("/admin/providers");
   return {};
+}
+
+export async function updateReportStatus(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  const reportId = String(formData.get("report_id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  const { error } = await session.supabase.rpc("admin_update_report_status", {
+    p_report: reportId,
+    p_status: status,
+  });
+  if (error) redirect("/admin?error=not-authorized");
+  revalidatePath("/admin");
+  redirect("/admin");
+}
+
+export async function grantAdministrator(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  const userId = String(formData.get("user_id") ?? "");
+  const { error } = await session.supabase.rpc("owner_grant_admin", { p_user: userId });
+  if (error) redirect("/admin/settings?error=unable-to-grant");
+  revalidatePath("/admin/settings");
+  redirect("/admin/settings?updated=1");
+}
+
+export async function revokeAdministrator(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  const userId = String(formData.get("user_id") ?? "");
+  const { error } = await session.supabase.rpc("owner_revoke_admin", { p_user: userId });
+  if (error) redirect("/admin/settings?error=unable-to-revoke");
+  revalidatePath("/admin/settings");
+  redirect("/admin/settings?updated=1");
 }

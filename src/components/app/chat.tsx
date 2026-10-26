@@ -6,6 +6,7 @@ import { markConversationRead, respondToRequest, sendMessage } from "@/app/(app)
 import { refreshPeerReadAt } from "@/app/(app)/safety-actions";
 import { Avatar } from "@/components/ui/avatar";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
+import { VoiceMessage, VoiceRecorder } from "@/components/app/voice-message";
 
 export type ChatMessage = {
   id: string;
@@ -83,7 +84,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
       window.clearInterval(readTimer);
       void supabase.removeChannel(channel);
     };
-  }, [conversationId, me]);
+  }, [conversationId, me, router]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "end" });
@@ -128,7 +129,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
           <p className="py-10 text-center text-sm text-grey-600">No messages yet. Say hello.</p>
         ) : (
           messages.map((m) => {
-            if (m.kind !== "user") {
+            if (m.kind !== "user" && m.kind !== "voice") {
               return (
                 <p key={m.id} className="py-1 text-center text-xs text-grey-600">
                   {m.body ?? "Booking update"}
@@ -144,7 +145,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
                     mine ? "rounded-br-md bg-navy-900 text-white" : "rounded-bl-md border border-grey-200 bg-white text-ink"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                  {m.kind === "voice" ? <VoiceMessage path={m.body ?? ""} mine={mine} /> : <p className="whitespace-pre-wrap break-words">{m.body}</p>}
                   <p className={`mt-1 text-[11px] ${mine ? "text-white/70" : "text-grey-600"}`}>
                     {mine ? "You" : otherName.split(" ")[0]} · {timeLabel(m.created_at)}{mine ? <span className={peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.created_at).getTime() ? "ml-2 font-semibold text-sky-300" : "ml-2 text-white/60"} aria-label={peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.created_at).getTime() ? "Read" : "Sent"}>{peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.created_at).getTime() ? "✓✓" : "✓"}</span> : null}
                   </p>
@@ -223,6 +224,7 @@ export function Chat({ conversationId, me, status: initialStatus, iStarted, canS
             placeholder="Write a message"
             className="max-h-32 min-h-12 flex-1 resize-none rounded-2xl border-2 border-grey-300 px-4 py-3 focus:border-navy-900 focus:outline-none"
           />
+          <VoiceRecorder conversationId={conversationId} userId={me} disabled={sending || answering || Boolean(blockedReason)} onSent={(id, path) => { add({ id, sender_id: me, kind: "voice", body: path, created_at: new Date().toISOString() }); router.refresh(); }} />
           <button
             type="submit"
             disabled={sending || draft.trim().length === 0}

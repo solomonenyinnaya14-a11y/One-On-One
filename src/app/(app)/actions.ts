@@ -159,6 +159,36 @@ export async function sendMessage(
   return { id: data as string };
 }
 
+export async function sendVoiceMessage(
+  conversationId: string,
+  path: string,
+): Promise<FormState & { id?: string }> {
+  const session = await getSession();
+  if (!session) return { error: "Please sign in again." };
+  const expectedPrefix = `${conversationId}/${session.userId}/`;
+  if (!path.startsWith(expectedPrefix) || path.length > 220) {
+    return { error: "That voice note couldn't be sent." };
+  }
+  const { data, error } = await session.supabase.rpc("send_voice_message", {
+    p_conversation: conversationId,
+    p_path: path,
+  });
+  if (error) {
+    const m = error.message;
+    if (m.includes("request_limit_reached"))
+      return { error: "You've sent the maximum number of messages in a request. Wait for a reply." };
+    if (m.includes("conversation_declined"))
+      return { error: "This person declined your message request." };
+    if (m.includes("conversation_not_allowed") || m.includes("account_not_active"))
+      return { error: "You can't send messages in this conversation." };
+    if (error.code === "54000")
+      return { error: "You're sending messages too quickly. Wait a moment and try again." };
+    return { error: "Your voice note wasn't sent. Please try again." };
+  }
+  revalidatePath("/inbox");
+  return { id: data as string };
+}
+
 export async function markConversationRead(conversationId: string): Promise<void> {
   const session = await getSession();
   if (!session) return;
