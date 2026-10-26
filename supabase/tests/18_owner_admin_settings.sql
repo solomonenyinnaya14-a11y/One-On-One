@@ -51,6 +51,4 @@ begin
   perform public.admin_update_report_status(report_id, 'reviewing');
   perform t.reset();
   perform t.eq((select status from public.user_reports where id=report_id), 'reviewing', 'admin can update report status');
-  perform t.as_user(owner_id);
-  perform t.reset();
 end $$;
