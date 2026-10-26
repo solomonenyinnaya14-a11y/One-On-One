@@ -185,7 +185,6 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
     }
     stopTracks();
     setRecording(false);
-    setLocked(false);
     clearPreview();
     setError(null);
   }
