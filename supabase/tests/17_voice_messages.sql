@@ -1,8 +1,8 @@
 -- Voice message storage and RPC access stay private and participant-scoped.
 do $$
 begin
-  if not exists (select 1 from storage.buckets where id='voice-messages' and public=false and file_size_limit=10485760) then
-    raise exception 'voice-messages must be a private bucket capped at 10 MB';
+  if not exists (select 1 from storage.buckets where id='voice-messages' and public=false and file_size_limit=20971520) then
+    raise exception 'voice-messages must be a private bucket capped at 20 MB';
   end if;
   if not exists (select 1 from pg_policies where schemaname='storage' and tablename='objects' and policyname='voice_messages_participant_read') then
     raise exception 'voice messages need a participant-only read policy';
