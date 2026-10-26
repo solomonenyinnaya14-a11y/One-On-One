@@ -54,11 +54,7 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
   const audioContext = useRef<AudioContext | null>(null);
   const analyser = useRef<AnalyserNode | null>(null);
   const previewUrlRef = useRef<string | null>(null);
-  const pointerHeld = useRef(false);
-  const lockedRef = useRef(false);
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [recording, setRecording] = useState(false);
-  const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [preview, setPreview] = useState<Blob | null>(null);
@@ -121,7 +117,6 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
       rec.onstop = () => {
         stopTracks();
         setRecording(false);
-        setLocked(false);
         const blob = new Blob(chunks.current, { type: mimeType });
         if (blob.size === 0) return;
         if (blob.size > MAX_BYTES) {
@@ -246,14 +241,11 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
           <span className="shrink-0 font-mono text-sm font-semibold text-navy-900">{formatTime(seconds)}</span>
           <Waveform levels={levels} active />
           <button type="button" onClick={cancel} className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-navy-900" aria-label="Discard recording">Cancel</button>
-          <button type="button" onClick={() => setLocked((value) => !value)} className="shrink-0 rounded-full border border-grey-300 px-2 py-1 text-xs font-semibold text-navy-900" aria-pressed={locked}>
-            {locked ? "Locked" : "Lock"}
-          </button>
-          <button type="button" onClick={stop} className="min-h-9 min-w-9 shrink-0 rounded-full bg-navy-900 px-3 text-sm font-bold text-white" aria-label="Finish recording">✓</button>
+                    <button type="button" onClick={stop} className="min-h-9 min-w-9 shrink-0 rounded-full bg-navy-900 px-3 text-sm font-bold text-white" aria-label="Finish recording">✓</button>
         </div>
       ) : previewUrl ? (
         <div className="flex min-h-12 min-w-0 items-center gap-2 rounded-2xl border border-grey-300 bg-grey-50 p-2">
-          <VoiceWavePlayer src={previewUrl} preview />
+          <VoiceWavePlayer key={previewUrl} src={previewUrl} preview />
           <button type="button" onClick={clearPreview} disabled={busy} className="min-h-9 rounded-full px-2 text-xs font-semibold text-red-700 disabled:opacity-50" aria-label="Delete recording">Delete</button>
           <button type="button" onClick={() => void send()} disabled={busy} className="min-h-9 rounded-full bg-navy-900 px-3 text-xs font-semibold text-white disabled:opacity-50">
             {busy ? "Sending…" : "Send"}
@@ -266,7 +258,7 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
           🎙️
         </button>
       )}
-      {recording ? <p className="text-center text-[11px] text-grey-600">{locked ? "Recording hands-free · tap ✓ when finished" : "Recording… release to finish · slide up to lock · slide left to cancel"}</p> : null}
+      {recording ? <p className="text-center text-[11px] text-grey-600">Recording… tap Finish when you&apos;re done</p> : null}
       {error ? <p role="alert" className="max-w-72 text-right text-xs font-medium text-red-700">{error}</p> : null}
     </div>
   );
@@ -284,13 +276,6 @@ function VoiceWavePlayer({ src, mine = false, preview = false }: { src: string; 
     const shape = (Math.sin((index + 2) * 1.73) + 1) / 2;
     return 5 + Math.round(shape * 19);
   });
-
-  useEffect(() => {
-    setPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
-    setPlayError(false);
-  }, [src]);
 
   async function togglePlayback() {
     const audio = audioRef.current;
@@ -355,7 +340,7 @@ function VoiceWavePlayer({ src, mine = false, preview = false }: { src: string; 
           <span>{formatTime(currentTime)}</span>
           <span>{duration > 0 ? formatTime(Math.max(0, duration - currentTime)) : (preview ? "Voice note" : "Voice message")}</span>
         </div>
-        {playError ? <p role="alert" className={`text-[10px] ${foreground}`}>Couldn't play audio. Tap to retry.</p> : null}
+        {playError ? <p role="alert" className={`text-[10px] ${foreground}`}>Couldn&apos;t play audio. Tap to retry.</p> : null}
       </div>
     </div>
   );
@@ -375,6 +360,6 @@ export function VoiceMessage({ path, mine }: { path: string; mine: boolean }) {
     });
     return () => { active = false; };
   }, [path]);
-  return url ? <VoiceWavePlayer src={url} mine={mine} /> :
+  return url ? <VoiceWavePlayer key={url} src={url} mine={mine} /> :
     <span className={mine ? "text-sm text-white/80" : "text-sm text-grey-600"}>{failed ? "Voice note unavailable" : "Loading voice note…"}</span>;
 }
