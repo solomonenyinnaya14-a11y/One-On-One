@@ -87,7 +87,7 @@ end $$;
 -- Impersonation -------------------------------------------------------------
 
 create function t.as_user(p_uid uuid) returns void
-language plpgsql as $
+language plpgsql as $fn$
 begin
   -- auth.uid() prefers request.jwt.claim.sub over the JSON claims object.
   -- Set both forms so a previous test user's claim cannot leak into this one.
@@ -96,34 +96,34 @@ begin
   perform set_config('request.jwt.claims',
     json_build_object('sub', p_uid::text, 'role', 'authenticated')::text, true);
   execute 'set local role authenticated';
-end $;
+end $fn$;
 
 create function t.as_anon() returns void
-language plpgsql as $
+language plpgsql as $fn$
 begin
   perform set_config('request.jwt.claim.sub', '', true);
   perform set_config('request.jwt.claim.role', 'anon', true);
   perform set_config('request.jwt.claims', '{"role":"anon"}', true);
   execute 'set local role anon';
-end $;
+end $fn$;
 
 create function t.as_service() returns void
-language plpgsql as $
+language plpgsql as $fn$
 begin
   perform set_config('request.jwt.claim.sub', '', true);
   perform set_config('request.jwt.claim.role', 'service_role', true);
   perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
   execute 'set local role service_role';
-end $;
+end $fn$;
 
 create function t.reset() returns void
-language plpgsql as $
+language plpgsql as $fn$
 begin
   execute 'reset role';
   perform set_config('request.jwt.claim.sub', '', true);
   perform set_config('request.jwt.claim.role', '', true);
   perform set_config('request.jwt.claims', '', true);
-end $;
+end $fn$;
 
 -- Fixtures (run as the database owner) ------------------------------------------
 
