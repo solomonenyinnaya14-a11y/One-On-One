@@ -10,7 +10,7 @@ begin
   -- Earlier provider-review tests leave a temporary admin behind; isolate this
   -- owner-first test by clearing only test-fixture administrator rows.
   delete from public.admin_users;
-  insert into public.admin_users(user_id) values(owner_id);
+  insert into public.admin_users(user_id, granted_at) values(owner_id, now() - interval '1 second');
   perform t.as_user(owner_id);
   perform t.ok(public.am_i_owner(), 'first admin is platform owner');
   perform t.eq(t.rows(format('select * from public.owner_list_admins()')), 1, 'owner sees their admin list');
