@@ -16,6 +16,7 @@ export default async function SettingsPage() {
   const { data: people } = ids.length ? await session.supabase.from("profiles").select("id,username,display_name,avatar_path").in("id", ids) : { data: [] as Person[] };
   const byId = new Map(((people ?? []) as Person[]).map((p) => [p.id, p]));
   const { data: privacy } = await session.supabase.from("profiles").select("show_online_status").eq("id", session.userId).maybeSingle();
+  const { data: isAdmin } = await session.supabase.rpc("am_i_admin");
   const { data: isOwner } = await session.supabase.rpc("am_i_owner");
 
   return <>
@@ -39,14 +40,14 @@ export default async function SettingsPage() {
       <h2 className="font-semibold">Need help?</h2>
       <p className="mt-1 text-sm leading-relaxed text-grey-600">Use Report user on a person&apos;s profile or inside a chat to flag spam, harassment, impersonation, scams, or other concerns.</p>
     </section>
-    {isOwner ? <section className="mt-7 card p-5">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-navy-700">Owner controls</p>
+    {isAdmin ? <section className="mt-7 card p-5">
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-navy-700">{isOwner ? "Owner controls" : "Administrator tools"}</p>
       <h2 className="mt-2 text-lg font-semibold">Administration</h2>
-      <p className="mt-1 text-sm leading-relaxed text-grey-600">Review reports, view product analytics and manage administrator access to One On One.</p>
+      <p className="mt-1 text-sm leading-relaxed text-grey-600">Review user reports and view product analytics. {isOwner ? "You can also manage administrator access." : ""}</p>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link href="/admin" className="inline-flex min-h-11 items-center justify-center rounded-full bg-navy-900 px-5 text-sm font-semibold text-white">Moderation dashboard</Link>
         <Link href="/admin/analytics" className="inline-flex min-h-11 items-center justify-center rounded-full border border-grey-300 bg-white px-5 text-sm font-semibold text-ink">View analytics</Link>
-        <Link href="/admin/settings" className="inline-flex min-h-11 items-center justify-center rounded-full border border-grey-300 bg-white px-5 text-sm font-semibold text-ink">Manage administrators</Link>
+        {isOwner ? <Link href="/admin/settings" className="inline-flex min-h-11 items-center justify-center rounded-full border border-grey-300 bg-white px-5 text-sm font-semibold text-ink">Manage administrators</Link> : null}
       </div>
     </section> : null}
   </>;
