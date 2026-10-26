@@ -15,6 +15,9 @@ begin
   perform t.ok(public.am_i_owner(), 'first admin is platform owner');
   perform t.eq(t.rows(format('select * from public.owner_list_admins()')), 1, 'owner sees their admin list');
   perform public.owner_grant_admin(admin_id);
+  -- Re-apply the test JWT after the SECURITY DEFINER call to keep identity explicit.
+  perform t.as_user(owner_id);
+  perform t.ok(public.am_i_owner(), 'owner remains owner after granting admin');
   perform t.eq(t.rows(format('select * from public.owner_list_admins()')), 2, 'owner sees added admin');
   perform t.reset();
 
