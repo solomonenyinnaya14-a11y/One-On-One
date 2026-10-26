@@ -22,7 +22,7 @@ alter table public.messages
   );
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('voice-messages', 'voice-messages', false, 10485760,
+values ('voice-messages', 'voice-messages', false, 20971520,
         array['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg'])
 on conflict (id) do update set
   public = false,
