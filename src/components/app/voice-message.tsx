@@ -143,7 +143,7 @@ export function VoiceMessage({ path, mine }: { path: string; mine: boolean }) {
   useEffect(() => {
     let active = true;
     const supabase = createBrowserSupabase();
-    if (!supabase) { setFailed(true); return; }
+    if (!supabase) { void Promise.resolve().then(() => { if (active) setFailed(true); }); return () => { active = false; }; }
     void supabase.storage.from(BUCKET).createSignedUrl(path, 60 * 60).then(({ data, error }) => {
       if (!active) return;
       if (error || !data?.signedUrl) setFailed(true);
