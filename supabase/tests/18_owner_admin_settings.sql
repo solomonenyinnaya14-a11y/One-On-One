@@ -7,6 +7,9 @@ declare
   reported_id uuid := t.make_member('Reported Member');
   report_id uuid;
 begin
+  -- Earlier provider-review tests leave a temporary admin behind; isolate this
+  -- owner-first test by clearing only test-fixture administrator rows.
+  delete from public.admin_users;
   insert into public.admin_users(user_id) values(owner_id);
   perform t.as_user(owner_id);
   perform t.ok(public.am_i_owner(), 'first admin is platform owner');
