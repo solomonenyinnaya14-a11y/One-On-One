@@ -13,6 +13,7 @@ begin
   perform t.ok(report_id is not null, 'signed-in user can submit a report through the guarded RPC');
   perform t.fails(format('select * from public.admin_list_reports()'), '42501', 'ordinary user cannot list reports');
   perform t.fails('select public.admin_analytics_snapshot()', '42501', 'ordinary user cannot read analytics');
+  perform t.fails('select public.admin_daily_active_users()', '42501', 'ordinary user cannot read DAU');
   perform t.reset();
 
   perform t.as_user(owner_id);
@@ -21,6 +22,7 @@ begin
   perform public.admin_update_report_status(report_id, 'reviewing');
   perform t.eq((select status from public.user_reports where id = report_id), 'reviewing', 'admin can update moderation status');
   snapshot := public.admin_analytics_snapshot();
+  perform t.ok(public.admin_daily_active_users() >= 0, 'admin can read daily active users');
   perform t.ok(snapshot ? 'totalUsers', 'analytics includes total users');
   perform t.ok(snapshot ? 'seenUsers7d', 'analytics includes recent presence');
   perform t.ok(snapshot ? 'voiceMessages', 'analytics includes voice message counts');
