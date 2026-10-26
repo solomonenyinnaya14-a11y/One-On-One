@@ -54,7 +54,9 @@ export function VoiceRecorder({ conversationId, userId, disabled, onSent }: {
   const audioContext = useRef<AudioContext | null>(null);
   const analyser = useRef<AnalyserNode | null>(null);
   const previewUrlRef = useRef<string | null>(null);
-  const pointerHeld = useRef(false);\n  const lockedRef = useRef(false);\n  const pointerStart = useRef<{ x: number; y: number } | null>(null);
+  const pointerHeld = useRef(false);
+  const lockedRef = useRef(false);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [recording, setRecording] = useState(false);
   const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
