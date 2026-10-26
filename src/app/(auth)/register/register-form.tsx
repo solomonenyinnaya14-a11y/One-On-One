@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Field } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
 import { FormMessage } from "@/components/ui/form-message";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { FormState } from "@/lib/form-state";
@@ -19,10 +20,9 @@ export function RegisterForm() {
       <FormMessage error={state.error} />
       <Field name="display_name" label="Your name" autoComplete="name" maxLength={80} error={state.fieldErrors?.display_name} />
       <Field name="email" label="Email" type="email" autoComplete="email" inputMode="email" error={state.fieldErrors?.email} />
-      <Field
+      <PasswordField
         name="password"
         label="Password"
-        type="password"
         autoComplete="new-password"
         hint="At least 8 characters."
         error={state.fieldErrors?.password}
