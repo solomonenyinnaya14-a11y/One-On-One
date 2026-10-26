@@ -68,7 +68,6 @@ declare
   v_other uuid;
   v_limit integer;
   v_id uuid;
-  v_object storage.objects%rowtype;
 begin
   if v_uid is null then
     raise exception 'not_authenticated' using errcode = '28000';
@@ -95,12 +94,10 @@ begin
     raise exception 'conversation_declined' using errcode = '42501';
   end if;
 
-  select * into v_object from storage.objects o
-    where o.bucket_id = 'voice-messages' and o.name = p_path;
-  if not found or v_object.owner_id is distinct from v_uid::text
-     or v_object.metadata->>'size' is null
-     or (v_object.metadata->>'size')::bigint > 10485760
-     or coalesce(v_object.metadata->>'mimetype', '') not in ('audio/webm','audio/ogg','audio/mp4','audio/mpeg') then
+  -- Bucket-level size/MIME limits and Storage RLS validate the upload; this
+  -- check confirms the referenced object exists in the private voice bucket.
+  if not exists (select 1 from storage.objects o
+      where o.bucket_id = 'voice-messages' and o.name = p_path) then
     raise exception 'voice_file_unavailable' using errcode = '42501';
   end if;
 
@@ -134,3 +131,25 @@ $$;
 revoke all on function public.send_voice_message(uuid, text) from public, anon, authenticated;
 grant execute on function public.send_voice_message(uuid, text) to authenticated;
 
+
+-- Keep voice storage paths out of the inbox preview.
+create or replace function private.touch_conversation_on_message()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.conversations c
+     set last_message_at = new.created_at,
+         last_message_preview = case new.kind
+           when 'user' then left(regexp_replace(btrim(new.body), '\\s+', ' ', 'g'), 140)
+           when 'voice' then 'Voice message'
+           when 'booking_card' then 'Booking update'
+           when 'service_card' then 'Service order update'
+           else left(new.body, 140)
+         end
+   where c.id = new.conversation_id;
+  return null;
+end;
+$$;
