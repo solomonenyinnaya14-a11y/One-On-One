@@ -143,7 +143,7 @@ begin
   update public.conversations c
      set last_message_at = new.created_at,
          last_message_preview = case new.kind
-           when 'user' then left(regexp_replace(btrim(new.body), '\\s+', ' ', 'g'), 140)
+           when 'user' then left(regexp_replace(btrim(new.body), '\s+', ' ', 'g'), 140)
            when 'voice' then 'Voice message'
            when 'booking_card' then 'Booking update'
            when 'service_card' then 'Service order update'
